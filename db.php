@@ -8,10 +8,10 @@ if (file_exists(__DIR__ . '/.env')) {
 }
 
 // Get database credentials from environment variables
-$db_host = $_ENV['DB_HOST'] ?? 'localhost';
-$db_user = $_ENV['DB_USER'] ?? 'postgres';
-$db_pass = $_ENV['DB_PASSWORD'] ?? '';
-$db_name = $_ENV['DB_NAME'] ?? 'postgres';
+$db_host = $_ENV['DB_HOST'] ?? 'dpg-d5ig3qi4d50c739mha1g-a';
+$db_user = $_ENV['DB_USER'] ?? 'root';
+$db_pass = $_ENV['DB_PASSWORD'] ?? 'oB8m4mLGft9SKSFFNmLWMOsUJNW7U3u8';
+$db_name = $_ENV['DB_NAME'] ?? 'myapp_goi3';
 $db_port = $_ENV['DB_PORT'] ?? 5432;
 
 // Create connection using PDO (PostgreSQL)
