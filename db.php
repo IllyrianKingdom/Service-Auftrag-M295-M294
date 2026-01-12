@@ -9,20 +9,21 @@ if (file_exists(__DIR__ . '/.env')) {
 
 // Get database credentials from environment variables
 $db_host = $_ENV['DB_HOST'] ?? 'localhost';
-$db_user = $_ENV['DB_USER'] ?? 'root';
+$db_user = $_ENV['DB_USER'] ?? 'postgres';
 $db_pass = $_ENV['DB_PASSWORD'] ?? '';
-$db_name = $_ENV['DB_NAME'] ?? 'myapp';
-$db_port = $_ENV['DB_PORT'] ?? 3306;
+$db_name = $_ENV['DB_NAME'] ?? 'postgres';
+$db_port = $_ENV['DB_PORT'] ?? 5432;
 
-// Create connection using MySQLi
-$mysqli = new mysqli($db_host, $db_user, $db_pass, $db_name, $db_port);
-
-// Check connection
-if ($mysqli->connect_error) {
-    die('Database connection failed: ' . $mysqli->connect_error);
+// Create connection using PDO (PostgreSQL)
+try {
+    $pdo = new PDO(
+        "pgsql:host=$db_host;port=$db_port;dbname=$db_name",
+        $db_user,
+        $db_pass,
+        [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
+    );
+} catch (PDOException $e) {
+    die('Database connection failed: ' . $e->getMessage());
 }
-
-// Set charset
-$mysqli->set_charset("utf8mb4");
 
 ?>
