@@ -1,9 +1,10 @@
-
+import './dashboard.css'
 
 function Dashboard() {
     return (
-        <div>
-            <h1>Dashboard</h1>
+        <div className="Dashboard">
+            <h1>Wilkommen zum Dashboard</h1>
+            
         </div>
     );
 }
