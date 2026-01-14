@@ -9,7 +9,6 @@ function Login() {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     
-    // Hardcodierte Benutzer
     const users = [
         { id: 1, email: 'benutzer1@example.com', password: 'password123', name: 'Benutzer 1' },
         { id: 2, email: 'benutzer2@example.com', password: 'password123', name: 'Benutzer 2' },
@@ -22,7 +21,7 @@ function Login() {
         setError('');
         setLoading(true);
 
-        // Simuliere einen kurzen Delay
+      
         await new Promise(resolve => setTimeout(resolve, 500));
 
         const user = users.find(u => u.email === email && u.password === password);
