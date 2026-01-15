@@ -5,6 +5,7 @@ import App from "./App.jsx";
 import Login from "./components/login.jsx";
 import "./index.css";
 import Dashboard from "./components/dashboard.jsx";
+import ProtectedRoute from "./components/ProtectedRoute.jsx";
 
 const router = createBrowserRouter([
   {
@@ -12,12 +13,15 @@ const router = createBrowserRouter([
     element: <App />,
     children: [
       {
-        index: true,        
+        index: true,  
         element: <Login />,
+      },
+      {
+        path: "/dashboard", 
+        element: <ProtectedRoute><Dashboard /></ProtectedRoute>
       },
     ],
   },
-  {path: "/dashboard", element: <Dashboard />}
 ],
 
 );
