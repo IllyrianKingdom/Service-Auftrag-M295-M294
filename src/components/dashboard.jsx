@@ -4,7 +4,7 @@ function Dashboard() {
     return (
         <>
             <div className="dashboard-container">
-                {/* Header */}
+               
                 <div className="dashboard-header">
                     <div className="header-left">
                         <h1 className="company-name">AVA GmbH</h1>
@@ -14,7 +14,7 @@ function Dashboard() {
                     </div>
                 </div>
 
-                {/* Main Dashboard Section */}
+                
                 <div className="dashboard-main">
                     <div className="dashboard-card">
                         <h2 className="dashboard-title">Dashboard</h2>
