@@ -27,6 +27,7 @@ function Login() {
         const user = users.find(u => u.email === email && u.password === password);
 
         if (user) {
+            localStorage.setItem('authToken', 'token_' + user.id);
             localStorage.setItem('user', JSON.stringify({
                 user_id: user.id,
                 email: user.email,
