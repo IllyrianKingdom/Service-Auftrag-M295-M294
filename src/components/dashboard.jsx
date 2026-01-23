@@ -1,5 +1,5 @@
 import './dashboard.css';
-
+// Dashboard-Komponente mit Header, Sidebar und Hauptbereich
 function Dashboard() {
   return (
     <div className="dashboard-page">
