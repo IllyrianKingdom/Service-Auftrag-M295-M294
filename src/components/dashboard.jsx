@@ -1,36 +1,35 @@
 import './dashboard.css';
 
 function Dashboard() {
-    return (
-        <>
-            <div className="dashboard-container">
-               
-                <div className="dashboard-header">
-                    <div className="header-left">
-                        <h1 className="company-name">AVA GmbH</h1>
-                    </div>
-                    <div className="header-right">
-                        <span className="user-info">Benutzer: BL Vedran Jerkovic</span>
-                    </div>
-                </div>
+  return (
+    <div className="dashboard-page">
+      
+      <header className="dashboard-header">
+        <h1 className="company-name">AVA GmbH</h1>
+        <span className="user-info">BL Vedran Jerkovic</span>
+      </header>
+      
+      <div className="dashboard-layout">
+        <nav className="dashboard-sidebar">
+          <div className="sidebar-header">
+            <h2>Dashboard</h2>
+          </div>
+          <ul className="menu-list">
+            <li><a href="/auftraege" className="menu-item">Aufträge</a></li>
+            <li><a href="/disposition" className="menu-item">Disposition</a></li>
+            <li><a href="/berichte" className="menu-item">Berichte</a></li>
+            <li><a href="/einstellungen" className="menu-item">Einstellungen</a></li>
+            <li><a href="/logout" className="menu-item logout">Logout</a></li>
+          </ul>
+        </nav>
 
-                
-                <div className="dashboard-main">
-                    <div className="dashboard-card">
-                        <h2 className="dashboard-title">Dashboard</h2>
-                        
-                        <nav className="menu-list">
-                            <a href="#auftraege" className="menu-item">Aufträge</a>
-                            <a href="#disposition" className="menu-item">Disposition</a>
-                            <a href="#berichte" className="menu-item">Berichte</a>
-                            <a href="#einstellungen" className="menu-item">Einstellungen</a>
-                            <a href="#logout" className="menu-item menu-logout">Logout</a>
-                        </nav>
-                    </div>
-                </div>
-            </div>
-        </>
-    );
+        <main className="dashboard-content">
+          <div className="content-placeholder">
+            Hauptbereich für Charts & Daten
+          </div>
+        </main>
+      </div>
+    </div>
+  );
 }
-
 export default Dashboard;

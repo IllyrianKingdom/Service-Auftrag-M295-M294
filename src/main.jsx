@@ -6,7 +6,7 @@ import Login from "./components/login.jsx";
 import "./index.css";
 import Dashboard from "./components/dashboard.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
-import TaskBoard from "./components/taskBoard.jsx";
+import Auftraege from "./components/auftraege.jsx";
 
 const router = createBrowserRouter([
   {
@@ -22,10 +22,10 @@ const router = createBrowserRouter([
         element: <ProtectedRoute><Dashboard /></ProtectedRoute>
       },
       {
-        path: "/taskboard", 
-        element: <TaskBoard />
-
-      }
+        path: "/auftraege", 
+        element: <ProtectedRoute><Auftraege /></ProtectedRoute>
+      },
+   
     ],
   },
 ],
