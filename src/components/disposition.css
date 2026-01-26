@@ -1,0 +1,269 @@
+.disposition-fullscreen {
+  height: 100vh !important;
+  width: 100vw !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  background: linear-gradient(135deg, rgba(20,20,50,0.8) 0%, rgba(10,10,30,0.9) 100%);
+  backdrop-filter: blur(25px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  color: rgba(255,255,255,0.9) !important;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* HEADER */
+.disposition-header {
+  padding: 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: transparent;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  gap: 20px;
+  flex-shrink: 0;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+}
+
+.disposition-header h1 {
+  font-size: 36px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #10b981, #059669);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin: 0;
+}
+
+/* STATS */
+.disposition-stats {
+  text-align: center;
+}
+
+.anzahl {
+  display: block;
+  font-size: 36px;
+  font-weight: 800;
+  color: #10b981;
+  line-height: 1;
+}
+
+.label {
+  font-size: 14px;
+  color: rgba(255,255,255,0.6);
+  text-transform: uppercase;
+}
+
+/* BACK BUTTON */
+.back-btn {
+  background: rgba(255,255,255,0.15);
+  color: white !important;
+  border: 1px solid rgba(255,255,255,0.3);
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+}
+
+.back-btn:hover {
+  background: rgba(255,255,255,0.25);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(255,255,255,0.2);
+}
+
+/* DATUM FILTER */
+.datum-filter {
+  display: flex;
+  gap: 8px;
+}
+
+.filter-btn {
+  background: rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.8);
+  border: 1px solid rgba(255,255,255,0.2);
+  padding: 10px 20px;
+  border-radius: 25px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 14px;
+}
+
+.filter-btn.active,
+.filter-btn:hover {
+  background: rgba(16,185,129,0.2);
+  color: #10b981;
+  border-color: #10b981;
+  box-shadow: 0 4px 15px rgba(16,185,129,0.3);
+}
+
+/* NEUER TERMIN BUTTON */
+.neuer-termin-btn {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  border: none;
+  padding: 14px 28px;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(16,185,129,0.3);
+  transition: all 0.3s ease;
+}
+
+.neuer-termin-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 30px rgba(16,185,129,0.4);
+}
+
+/* TIMELINE */
+.disposition-timeline {
+  flex: 1;
+  padding: 40px;
+  overflow-y: auto;
+}
+
+.timeline-header {
+  display: grid;
+  grid-template-columns: 200px 1fr 150px 150px;
+  gap: 20px;
+  padding: 20px 0;
+  border-bottom: 2px solid rgba(255,255,255,0.1);
+  margin-bottom: 24px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.8);
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* DISPO ZEILEN */
+.dispo-zeile {
+  display: grid;
+  grid-template-columns: 200px 1fr 150px 150px;
+  gap: 20px;
+  padding: 24px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.dispo-zeile:hover {
+  background: rgba(255,255,255,0.05);
+  border-radius: 12px;
+  margin: 0 -20px;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+/* MITARBEITER */
+.dispo-mitarbeiter {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 16px;
+  color: white;
+}
+
+/* AUFTRAG */
+.dispo-auftrag h4 {
+  margin: 0 0 4px 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: white;
+}
+
+.dispo-auftrag p {
+  margin: 0;
+  color: rgba(255,255,255,0.7);
+  font-size: 14px;
+}
+
+/* TERMIN */
+.dispo-termin {
+  font-weight: 600;
+  color: #10b981;
+  font-size: 16px;
+}
+
+/* STATUS */
+.dispo-status .status-badge {
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.status-geplant { background: rgba(99,102,241,0.2); color: #6366f1; }
+.status-in-arbeit { background: rgba(245,101,101,0.2); color: #f56565; }
+.status-frei { background: rgba(16,185,129,0.2); color: #10b981; }
+
+/* FAB BUTTON */
+.fab-button {
+  position: fixed;
+  bottom: 40px;
+  right: 40px;
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, #10b981, #059669);
+  border: none;
+  border-radius: 50%;
+  color: white;
+  font-size: 24px;
+  font-weight: 300;
+  cursor: pointer;
+  box-shadow: 0 8px 25px rgba(16,185,129,0.4);
+  transition: all 0.3s ease;
+  z-index: 1000;
+}
+
+.fab-button:hover {
+  transform: scale(1.1) rotate(90deg);
+  box-shadow: 0 12px 35px rgba(16,185,129,0.5);
+}
+
+/* RESPONSIVE */
+@media (max-width: 1200px) {
+  .timeline-header,
+  .dispo-zeile {
+    grid-template-columns: 160px 1fr 120px 120px;
+    gap: 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .header-controls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  
+  .timeline-header,
+  .dispo-zeile {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  .disposition-timeline {
+    padding: 20px;
+  }
+}

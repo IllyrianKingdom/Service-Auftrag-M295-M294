@@ -1,0 +1,341 @@
+/* FULLSCREEN & LAYOUT */
+.auftraege-fullscreen {
+  height: 100vh !important;
+  width: 100vw !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  background: rgba(20,20,50,0.6);
+  backdrop-filter: blur(25px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  color: rgba(255,255,255,0.9) !important;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* HEADER */
+.auftraege-header {
+  padding: 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: transparent;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  gap: 20px;
+  flex-shrink: 0;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+}
+
+.auftraege-header h1 {
+  font-size: 36px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin: 0;
+}
+
+/* ANZAHL DISPLAY */
+.auftraege-anzahl {
+  text-align: center;
+}
+
+.anzahl {
+  display: block;
+  font-size: 36px;
+  font-weight: 800;
+  color: white;
+  line-height: 1;
+}
+
+.label {
+  font-size: 14px;
+  color: rgba(255,255,255,0.6);
+  text-transform: uppercase;
+}
+
+/* BACK BUTTON */
+.back-btn {
+  background: rgba(255,255,255,0.15);
+  color: white !important;
+  border: 1px solid rgba(255,255,255,0.3);
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+  margin-right: 20px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.back-btn:hover {
+  background: rgba(255,255,255,0.25);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(255,255,255,0.2);
+}
+
+/* SUCHE + FILTER */
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.suchleiste input {
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.25);
+  border-radius: 12px;
+  padding: 14px 20px;
+  color: white !important;
+  width: 300px;
+  backdrop-filter: blur(10px);
+  font-size: 15px;
+}
+
+.suchleiste input::placeholder {
+  color: rgba(255,255,255,0.5) !important;
+}
+
+.filter-select select {
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.25);
+  border-radius: 12px;
+  padding: 14px 40px 14px 16px;
+  color: white !important;
+  backdrop-filter: blur(10px);
+  cursor: pointer;
+  font-size: 15px;
+
+  background-position: right 12px center;
+  background-repeat: no-repeat;
+  background-size: 16px;
+}
+
+.filter-select select option {
+  background: #1e1e2e !important;
+  color: white !important;
+}
+
+/* NEUER AUFTRAG BUTTON */
+.neu-auftrag-btn {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border: none;
+  padding: 14px 28px;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(102,126,234,0.3);
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  font-size: 15px;
+}
+
+.neu-auftrag-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 30px rgba(102,126,234,0.4);
+}
+
+/* FORM */
+.auftrag-form-container {
+  padding: 24px 40px;
+  background: transparent;
+  flex-shrink: 0;
+}
+
+.auftrag-form {
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 16px;
+  padding: 24px;
+  max-width: 900px;
+  margin-left: auto;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 2fr 2fr 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.auftrag-form input,
+.auftrag-form select.custom-select {
+  background: rgba(255,255,255,0.12) !important;
+  border: 1px solid rgba(255,255,255,0.25) !important;
+  border-radius: 10px !important;
+  padding: 12px 16px !important;
+  color: white !important;
+  font-size: 15px !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+.auftrag-form input::placeholder {
+  color: rgba(255,255,255,0.5) !important;
+}
+
+.auftrag-form button {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  grid-column: span 2;
+  font-size: 15px;
+  transition: all 0.3s ease;
+}
+
+.auftrag-form button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(16,185,129,0.4);
+}
+
+/* KARTEN CONTAINER */
+.auftraege-karten {
+  flex: 1;
+  padding: 32px 40px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  gap: 24px;
+  overflow-y: auto;
+}
+
+/* AUFTRAGSKARTEN */
+.auftrag-karte {
+  background: rgba(30,30,60,0.8);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 16px;
+  padding: 24px;
+  height: 140px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  color: white !important;
+}
+
+.auftrag-karte:hover {
+  background: rgba(40,40,80,0.9);
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+}
+
+.karte-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.karte-header h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: white !important;
+  margin: 0;
+  max-width: 200px;
+}
+
+.delete-btn {
+  background: rgba(239,68,68,0.3);
+  color: #f87171 !important;
+  border: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.delete-btn:hover {
+  background: rgba(239,68,68,1);
+  color: white !important;
+}
+
+.karte-body p {
+  color: rgba(255,255,255,0.9) !important;
+  font-size: 15px;
+  margin: 0 0 12px 0;
+  line-height: 1.5;
+}
+
+.karte-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: white !important;
+}
+
+.status-neu { background: rgba(99,102,241,0.3); }
+.status-in-bearbeitung { background: rgba(102,126,234,0.3); }
+.status-abgeschlossen { background: rgba(16,185,129,0.3); }
+
+.datum {
+  color: rgba(255,255,255,0.7) !important;
+  font-size: 14px;
+}
+
+/* EMPTY STATE */
+.empty-state {
+  padding: 80px 40px;
+  text-align: center;
+  color: rgba(255,255,255,0.6);
+  grid-column: 1 / -1;
+}
+
+.empty-state h3 {
+  font-size: 24px;
+  margin-bottom: 12px;
+  color: rgba(255,255,255,0.9);
+}
+
+/* RESPONSIVE */
+@media (max-width: 1200px) {
+  .auftraege-karten {
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    padding: 24px 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .header-controls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    width: 100%;
+  }
+  
+  .suchleiste input {
+    width: 100%;
+  }
+  
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .auftraege-karten {
+    grid-template-columns: 1fr;
+    padding: 20px;
+    gap: 16px;
+  }
+}

@@ -1,12 +1,15 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { AuthProvider } from "./auth/AuthProvider";
 import App from "./App.jsx";
 import Login from "./components/login.jsx";
 import "./index.css";
 import Dashboard from "./components/dashboard.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
-import { AuthProvider } from "./auth/AuthProvider";
+import Disposition from "./components/disposition.jsx";
+import Auftraege from "./components/auftraege.jsx";
+
 
 const router = createBrowserRouter([
   {
@@ -14,12 +17,28 @@ const router = createBrowserRouter([
     element: <App />,
     children: [
       {
-        index: true,        
+        index: true,  
         element: <Login />,
       },
+      {
+        path: "/dashboard", 
+        element: <ProtectedRoute><Dashboard /></ProtectedRoute>
+      },
+      {
+        path: "/auftraege", 
+        element: <ProtectedRoute><Auftraege /></ProtectedRoute>
+      },
+      {
+        path: "/disposition", 
+        element: <ProtectedRoute><Disposition /></ProtectedRoute>
+      },
+   
     ],
   },
+
   {path: "/dashboard", element: <ProtectedRoute><Dashboard /></ProtectedRoute>}
+
+
 ],
 
 );
