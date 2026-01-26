@@ -4,18 +4,25 @@ html, body, #root {
   padding: 0 !important;
 }
 
-body {
+html, body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     background: linear-gradient(0deg, #120063 0%, hsl(0, 0%, 0%) 100%);
+}
+
+body {
     height: 100vh !important;
     width: 100vw !important;
     margin: 0 !important;
     padding: 20px !important;
+    line-height: 1.6;
+    overflow: hidden !important;
+}
+
+#root {
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    line-height: 1.6;
-    overflow: hidden !important;
+    height: 100vh !important;
 }
 .login-container {
     width: 100%;
