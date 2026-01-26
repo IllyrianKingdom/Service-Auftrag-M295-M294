@@ -267,3 +267,131 @@
     padding: 20px;
   }
 }
+/* ===========================
+   NEUEN TERMIN ERSTELLEN – FORMULAR DESIGN
+   =========================== */
+
+.neuer-termin-form-wrapper {
+  padding: 24px 40px;
+  background: transparent;
+  flex-shrink: 0;
+}
+
+/* Überschrift über dem Formular */
+.neuer-termin-form-wrapper h3 {
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+/* Formular-Box */
+.neuer-termin-form {
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(18px);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 16px;
+  padding: 20px 20px 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Grid für die Felder in einer Zeile */
+.neuer-termin-form .form-grid {
+  display: grid;
+  grid-template-columns: 1.8fr 1.8fr 1.4fr 1.6fr 1.2fr;
+  gap: 10px;
+}
+
+/* Inputs & Selects */
+.neuer-termin-form input,
+.neuer-termin-form select {
+  background: rgba(8, 12, 30, 0.9);
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  border-radius: 10px;
+  padding: 10px 12px;
+  color: #e5e7eb;
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  min-width: 0;
+}
+
+.neuer-termin-form input::placeholder {
+  color: rgba(148, 163, 184, 0.85);
+}
+
+/* Select Pfeil */
+.neuer-termin-form select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='%23e5e7eb' viewBox='0 0 20 20'%3e%3cpath d='M5.25 7.5L10 12.25 14.75 7.5H5.25z'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 14px 14px;
+  padding-right: 26px;
+}
+
+.neuer-termin-form input:focus,
+.neuer-termin-form select:focus {
+  border-color: #10b981;
+  box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.4);
+}
+
+/* Button-Leiste */
+.neuer-termin-form .form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+/* Abbrechen / Speichern Buttons */
+.neuer-termin-form .cancel-btn,
+.neuer-termin-form .speichern-btn {
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 8px 18px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.neuer-termin-form .cancel-btn {
+  background: transparent;
+  color: #e5e7eb;
+  border: 1px solid rgba(148, 163, 184, 0.6);
+}
+
+.neuer-termin-form .cancel-btn:hover {
+  background: rgba(148, 163, 184, 0.15);
+}
+
+.neuer-termin-form .speichern-btn {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: #ffffff;
+  box-shadow: 0 6px 18px rgba(16, 185, 129, 0.45);
+}
+
+.neuer-termin-form .speichern-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 26px rgba(16, 185, 129, 0.6);
+}
+
+/* Responsive für kleinere Screens */
+@media (max-width: 1024px) {
+  .neuer-termin-form .form-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .neuer-termin-form-wrapper {
+    padding: 16px;
+  }
+
+  .neuer-termin-form .form-grid {
+    grid-template-columns: 1fr;
+  }
+}

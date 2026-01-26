@@ -9,6 +9,7 @@ import Dashboard from "./components/dashboard.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import Disposition from "./components/disposition.jsx";
 import Auftraege from "./components/auftraege.jsx";
+import Berichte from "./components/berichte.jsx";
 
 
 const router = createBrowserRouter([
@@ -31,6 +32,10 @@ const router = createBrowserRouter([
       {
         path: "/disposition", 
         element: <ProtectedRoute><Disposition /></ProtectedRoute>
+      },
+      {
+        path: "/berichte", 
+        element: <ProtectedRoute><Berichte /></ProtectedRoute>
       },
    
     ],

@@ -29,15 +29,25 @@ function Disposition() {
     const terminData = {
       id: Date.now(),
       ...neuerTermin,
-      termin: neuerTermin.termin || `${new Date().getDate() + 1}.${new Date().getMonth() + 1}. 09:00`
+      termin:
+        neuerTermin.termin ||
+        `${new Date().getDate() + 1}.${new Date().getMonth() + 1}. 09:00`
     };
+
+    // neuer Termin oben einfügen
     setDispositionen([terminData, ...dispositionen]);
-    setNeuerTermin({ kunde: '', auftrag: '', mitarbeiter: '', termin: '', status: 'Geplant' });
+    setNeuerTermin({
+      kunde: '',
+      auftrag: '',
+      mitarbeiter: '',
+      termin: '',
+      status: 'Geplant'
+    });
     setShowNewTermin(false);
   };
 
   const handleDelete = (id) => {
-    setDispositionen(dispositionen.filter(d => d.id !== id));
+    setDispositionen(dispositionen.filter((d) => d.id !== id));
   };
 
   return (
@@ -54,52 +64,61 @@ function Disposition() {
             <span className="label">Einträge</span>
           </div>
         </div>
-        
+
         <div className="header-controls">
-          <button className="neuer-termin-btn" onClick={() => setShowNewTermin(!showNewTermin)}>
+          <button
+            className="neuer-termin-btn"
+            onClick={() => setShowNewTermin(!showNewTermin)}
+          >
             {showNewTermin ? 'Abbrechen' : '+ Neuer Termin'}
           </button>
         </div>
       </div>
 
-      {/* NEUER TERMIN FORM (Modal) */}
+      {/* NEUER TERMIN FORM – schicke Box, nicht ganzes Overlay */}
       {showNewTermin && (
-        <div className="modal-overlay" onClick={() => setShowNewTermin(false)}>
-          <form className="neuer-termin-form" onSubmit={handleSubmit} onClick={e => e.stopPropagation()}>
-            <h3>Neuen Termin erstellen</h3>
+        <div className="neuer-termin-form-wrapper">
+          <h3>Neuen Termin erstellen</h3>
+          <form className="neuer-termin-form" onSubmit={handleSubmit}>
             <div className="form-grid">
-              <input 
-                name="kunde" 
-                placeholder="Kunde" 
+              <input
+                name="kunde"
+                placeholder="Kunde"
                 value={neuerTermin.kunde}
                 onChange={handleInputChange}
-                required 
+                required
               />
-              <input 
-                name="auftrag" 
-                placeholder="Auftrag" 
+              <input
+                name="auftrag"
+                placeholder="Auftrag"
                 value={neuerTermin.auftrag}
                 onChange={handleInputChange}
-                required 
+                required
               />
-              <select 
-                name="mitarbeiter" 
+              <select
+                name="mitarbeiter"
                 value={neuerTermin.mitarbeiter}
                 onChange={handleInputChange}
                 required
               >
                 <option value="">Mitarbeiter wählen</option>
-                {mitarbeiterListe.map(m => (
-                  <option key={m} value={m}>{m}</option>
+                {mitarbeiterListe.map((m) => (
+                  <option key={m} value={m}>
+                    {m}
+                  </option>
                 ))}
               </select>
-              <input 
-                name="termin" 
+              <input
+                name="termin"
                 type="datetime-local"
                 value={neuerTermin.termin}
                 onChange={handleInputChange}
               />
-              <select name="status" value={neuerTermin.status} onChange={handleInputChange}>
+              <select
+                name="status"
+                value={neuerTermin.status}
+                onChange={handleInputChange}
+              >
                 <option>Geplant</option>
                 <option>In Arbeit</option>
                 <option>Frei</option>
@@ -107,10 +126,16 @@ function Disposition() {
               </select>
             </div>
             <div className="form-actions">
-              <button type="button" className="cancel-btn" onClick={() => setShowNewTermin(false)}>
+              <button
+                type="button"
+                className="cancel-btn"
+                onClick={() => setShowNewTermin(false)}
+              >
                 Abbrechen
               </button>
-              <button type="submit" class="speichern-btn">Termin speichern</button>
+              <button type="submit" className="speichern-btn">
+                Termin speichern
+              </button>
             </div>
           </form>
         </div>
@@ -126,7 +151,7 @@ function Disposition() {
           <span></span>
         </div>
 
-        {dispositionen.map(dispo => (
+        {dispositionen.map((dispo) => (
           <div key={dispo.id} className="dispo-zeile">
             <div className="dispo-mitarbeiter">
               <div className="avatar">{dispo.mitarbeiter.charAt(0)}</div>
@@ -140,11 +165,20 @@ function Disposition() {
               <span className="zeit">{dispo.termin}</span>
             </div>
             <div className="dispo-status">
-              <span className={`status-badge status-${dispo.status.toLowerCase().replace(/ /g, '-')}`}>
+              <span
+                className={`status-badge status-${dispo.status
+                  .toLowerCase()
+                  .replace(/ /g, '-')}`}
+              >
                 {dispo.status}
               </span>
             </div>
-            <button className="delete-btn" onClick={() => handleDelete(dispo.id)}>×</button>
+            <button
+              className="delete-btn"
+              onClick={() => handleDelete(dispo.id)}
+            >
+              ×
+            </button>
           </div>
         ))}
       </div>
