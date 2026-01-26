@@ -289,6 +289,31 @@
 .status-neu { background: rgba(99,102,241,0.3); }
 .status-in-bearbeitung { background: rgba(102,126,234,0.3); }
 .status-abgeschlossen { background: rgba(16,185,129,0.3); }
+
+.status-select {
+  background: rgba(255,255,255,0.12) !important;
+  border: 1px solid rgba(255,255,255,0.25) !important;
+  border-radius: 8px !important;
+  padding: 6px 12px !important;
+  color: white !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  backdrop-filter: blur(10px) !important;
+  transition: all 0.3s ease !important;
+}
+
+.status-select:hover {
+  background: rgba(255,255,255,0.18) !important;
+  border-color: rgba(255,255,255,0.35) !important;
+}
+
+.status-select:focus {
+  outline: none !important;
+  background: rgba(255,255,255,0.15) !important;
+  border-color: rgba(102,126,234,0.6) !important;
+  box-shadow: 0 0 0 2px rgba(102,126,234,0.2) !important;
+}
  
 .datum {
   color: rgba(255,255,255,0.7) !important;

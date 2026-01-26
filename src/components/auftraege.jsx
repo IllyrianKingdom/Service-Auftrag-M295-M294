@@ -54,6 +54,12 @@ function Auftraege() {
   const handleDelete = (id) => {
     setAlleAuftraege(alleAuftraege.filter(auftrag => auftrag.id !== id));
   };
+
+  const handleStatusChange = (id, neuerStatus) => {
+    setAlleAuftraege(alleAuftraege.map(auftrag =>
+      auftrag.id === id ? { ...auftrag, status: neuerStatus } : auftrag
+    ));
+  };
  
   return (
     <div className="auftraege-fullscreen">
@@ -146,9 +152,15 @@ function Auftraege() {
               <div className="karte-body">
                 <p>{auftrag.auftrag}</p>
                 <div className="karte-footer">
-                  <span className={`status-badge status-${auftrag.status.toLowerCase().replace(/ /g, '-')}`}>
-                    {auftrag.status}
-                  </span>
+                  <select 
+                    className="status-select"
+                    value={auftrag.status} 
+                    onChange={(e) => handleStatusChange(auftrag.id, e.target.value)}
+                  >
+                    <option>Neu</option>
+                    <option>In Bearbeitung</option>
+                    <option>Abgeschlossen</option>
+                  </select>
                   <span className="datum">{auftrag.datum}</span>
                 </div>
               </div>
