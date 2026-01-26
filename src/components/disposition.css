@@ -379,7 +379,6 @@
   box-shadow: 0 10px 26px rgba(16, 185, 129, 0.6);
 }
 
-/* Responsive für kleinere Screens */
 @media (max-width: 1024px) {
   .neuer-termin-form .form-grid {
     grid-template-columns: 1fr 1fr;
