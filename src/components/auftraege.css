@@ -20,7 +20,6 @@
   justify-content: space-between;
   align-items: center;
   background: transparent;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
   gap: 20px;
   flex-shrink: 0;
 }
@@ -112,7 +111,7 @@
   backdrop-filter: blur(10px);
   cursor: pointer;
   font-size: 15px;
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='white' viewBox='0 0 20 20'%3e%3cpath d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z'/%3e%3c/svg%3e");
+
   background-position: right 12px center;
   background-repeat: no-repeat;
   background-size: 16px;
@@ -289,6 +288,31 @@
 .status-neu { background: rgba(99,102,241,0.3); }
 .status-in-bearbeitung { background: rgba(102,126,234,0.3); }
 .status-abgeschlossen { background: rgba(16,185,129,0.3); }
+
+.status-select {
+  background: rgba(255,255,255,0.12) !important;
+  border: 1px solid rgba(255,255,255,0.25) !important;
+  border-radius: 8px !important;
+  padding: 6px 12px !important;
+  color: white !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  backdrop-filter: blur(10px) !important;
+  transition: all 0.3s ease !important;
+}
+
+.status-select:hover {
+  background: rgba(255,255,255,0.18) !important;
+  border-color: rgba(255,255,255,0.35) !important;
+}
+
+.status-select:focus {
+  outline: none !important;
+  background: rgba(255,255,255,0.15) !important;
+  border-color: rgba(102,126,234,0.6) !important;
+  box-shadow: 0 0 0 2px rgba(102,126,234,0.2) !important;
+}
  
 .datum {
   color: rgba(255,255,255,0.7) !important;

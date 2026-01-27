@@ -1,10 +1,9 @@
-/* Dashboard.css - CLEAN MODERN */
+
 .dashboard-page {
   font-family: -apple-system, BlinkMacSystemFont, sans-serif;
   background: linear-gradient(135deg, #0a0a23 0%, #1a0033 50%, #000428 100%);
 }
 
-/* NAVBAR */
 .dashboard-header {
   position: fixed;
   top: 0;
@@ -38,7 +37,6 @@
   border: 1px solid rgba(255,255,255,0.1);
 }
 
-/* LAYOUT */
 .dashboard-layout {
   height: 100vh;
   padding-top: 70px;

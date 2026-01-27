@@ -1,5 +1,4 @@
 import './dashboard.css';
-// Dashboard-Komponente mit Header, Sidebar und Hauptbereich
 function Dashboard() {
   return (
     <div className="dashboard-page">
@@ -18,8 +17,8 @@ function Dashboard() {
             <li><a href="/auftraege" className="menu-item">Aufträge</a></li>
             <li><a href="/disposition" className="menu-item">Disposition</a></li>
             <li><a href="/berichte" className="menu-item">Berichte</a></li>
-            <li><a href="/einstellungen" className="menu-item">Einstellungen</a></li>
-            <li><a href="/logout" className="menu-item logout">Logout</a></li>
+            
+            <li><a href="/" className="menu-item logout">Logout</a></li>
           </ul>
         </nav>
 
@@ -31,5 +30,6 @@ function Dashboard() {
       </div>
     </div>
   );
+
 }
 export default Dashboard;
