@@ -1,13 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import './Auftraege.css';
- 
+import { API_ENDPOINTS, apiCall } from '../services/api.jsx';
+import './auftraege.css';
+
 function Auftraege() {
-  // ========== API CONFIG (VITE) ==========
-  const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://ava-ch.infinityfreeapp.com';
-  const AUFTRAEGE_ENDPOINT = `${API_BASE_URL}/api/auftraege.php`;
-  const KUNDEN_ENDPOINT = `${API_BASE_URL}/api/kunden.php`;
- 
   // ========== STATE ==========
   const [alleAuftraege, setAlleAuftraege] = useState([]);
   const [auftraege, setAuftraege] = useState([]);
@@ -23,78 +19,57 @@ function Auftraege() {
   const [filterStatus, setFilterStatus] = useState('alle');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
- 
+
   // ========== FETCH AUFTRAEGE & KUNDEN ==========
   useEffect(() => {
     fetchAuftraege();
     fetchKunden();
   }, []);
- 
-// Add this fetch helper with CORS mode
-const fetchWithCORS = async (url, options = {}) => {
-  return fetch(url, {
-    ...options,
-    mode: 'cors', // Explicitly enable CORS
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers
+
+  const fetchAuftraege = async () => {
+    try {
+      setLoading(true);
+      const response = await apiCall(API_ENDPOINTS.auftraege);
+      setAlleAuftraege(response);
+      setError(null);
+    } catch (err) {
+      console.error('Failed to fetch auftraege:', err);
+      setError('Aufträge konnten nicht geladen werden');
+    } finally {
+      setLoading(false);
     }
-  });
-};
- 
-// Usage in your functions:
-const fetchAuftraege = async () => {
-  try {
-    setLoading(true);
-    const response = await fetchWithCORS(AUFTRAEGE_ENDPOINT);
-   
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-   
-    const data = await response.json();
-    setAlleAuftraege(data);
-    setError(null);
-  } catch (err) {
-    console.error('Failed to fetch auftraege:', err);
-    setError('Aufträge konnten nicht geladen werden');
-  } finally {
-    setLoading(false);
-  }
-};
- 
+  };
+
   const fetchKunden = async () => {
     try {
-      const response = await fetch(KUNDEN_ENDPOINT);
-     
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-     
-      const data = await response.json();
-      setAlleKunden(data);
+      const response = await apiCall(API_ENDPOINTS.kunden);
+      setAlleKunden(response);
     } catch (err) {
       console.error('Failed to fetch kunden:', err);
       setError('Kunden konnten nicht geladen werden');
     }
   };
- 
+
   // ========== FILTER & SEARCH ==========
   useEffect(() => {
     let gefilterte = alleAuftraege;
- 
-    // Status Filter
+
+    // Status Filter - ACHTUNG: snake_case in Daten!
     if (filterStatus !== 'alle') {
-      gefilterte = gefilterte.filter(auftrag => auftrag.Status === filterStatus);
+      gefilterte = gefilterte.filter(auftrag => auftrag.status === filterStatus);
     }
- 
-    // Suche (nach Firma oder Auftragsname)
+
+    // Suche (nach Firma oder Auftragsname) - snake_case!
     if (suchbegriff) {
       gefilterte = gefilterte.filter(auftrag =>
-        (auftrag.Firma && auftrag.Firma.toLowerCase().includes(suchbegriff.toLowerCase())) ||
-        auftrag.Auftragsname.toLowerCase().includes(suchbegriff.toLowerCase())
+        (auftrag.firma && auftrag.firma.toLowerCase().includes(suchbegriff.toLowerCase())) ||
+        auftrag.auftragsname.toLowerCase().includes(suchbegriff.toLowerCase())
       );
     }
- 
+
     setAuftraege(gefilterte);
   }, [suchbegriff, filterStatus, alleAuftraege]);
- 
+
   // ========== FORM HANDLERS ==========
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -103,40 +78,28 @@ const fetchAuftraege = async () => {
       [name]: value
     }));
   };
- 
+
   const handleSubmit = async (e) => {
     e.preventDefault();
- 
+
     if (!neuerAuftrag.Kunden_id || !neuerAuftrag.Auftragsname) {
       setError('Bitte füllen Sie alle erforderlichen Felder aus');
       return;
     }
- 
+
     try {
       const payload = {
         Kunden_id: parseInt(neuerAuftrag.Kunden_id),
         Auftragsname: neuerAuftrag.Auftragsname,
         Status: neuerAuftrag.Status,
         Angefangen_am: neuerAuftrag.Angefangen_am || new Date().toISOString().split('T')[0],
-        Erfasst_von: 1 // ← Update with actual user ID from auth
+        Erfasst_von: 1
       };
- 
-      const response = await fetch(AUFTRAEGE_ENDPOINT, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
- 
-      const result = await response.json();
- 
-      if (!response.ok) {
-        throw new Error(result.message || 'Fehler beim Erstellen des Auftrags');
-      }
- 
-      // Refresh auftraege list
+
+      await apiCall(API_ENDPOINTS.auftraege, 'POST', payload);
+
       await fetchAuftraege();
-     
-      // Reset form
+
       setNeuerAuftrag({
         Kunden_id: '',
         Auftragsname: '',
@@ -150,24 +113,15 @@ const fetchAuftraege = async () => {
       setError(`Fehler: ${err.message}`);
     }
   };
- 
+
   const handleDelete = async (auftrag_id) => {
     if (!window.confirm('Diesen Auftrag wirklich löschen?')) return;
- 
+
     try {
-      const response = await fetch(`${AUFTRAEGE_ENDPOINT}?delete`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ Auftrag_id: auftrag_id })
+      await apiCall(API_ENDPOINTS.auftraege + '?delete', 'POST', {
+        Auftrag_id: auftrag_id
       });
- 
-      const result = await response.json();
- 
-      if (!response.ok) {
-        throw new Error(result.message || 'Fehler beim Löschen des Auftrags');
-      }
- 
-      // Refresh auftraege list
+
       await fetchAuftraege();
       setError(null);
     } catch (err) {
@@ -175,25 +129,14 @@ const fetchAuftraege = async () => {
       setError(`Fehler: ${err.message}`);
     }
   };
- 
+
   const handleStatusChange = async (auftrag_id, newStatus) => {
     try {
-      const response = await fetch(`${AUFTRAEGE_ENDPOINT}?update`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          Auftrag_id: auftrag_id,
-          Status: newStatus
-        })
+      await apiCall(API_ENDPOINTS.auftraege + '?update', 'POST', {
+        Auftrag_id: auftrag_id,
+        Status: newStatus
       });
- 
-      const result = await response.json();
- 
-      if (!response.ok) {
-        throw new Error(result.message || 'Fehler beim Aktualisieren des Status');
-      }
- 
-      // Refresh auftraege list
+
       await fetchAuftraege();
       setError(null);
     } catch (err) {
@@ -201,19 +144,20 @@ const fetchAuftraege = async () => {
       setError(`Fehler: ${err.message}`);
     }
   };
- 
+
   // ========== HELPER FUNCTIONS ==========
   const getKundenName = (kunden_id) => {
-    const kunde = alleKunden.find(k => k.Kunden_id === kunden_id);
-    return kunde ? (kunde.Firma || `${kunde.Vorname} ${kunde.Name}`) : 'Unbekannt';
+    // WICHTIG: snake_case in den API-Daten!
+    const kunde = alleKunden.find(k => k.kunden_id === kunden_id);
+    return kunde ? (kunde.firma || `${kunde.vorname} ${kunde.name}`) : 'Unbekannt';
   };
- 
+
   const formatDate = (dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
     return date.toLocaleDateString('de-CH', { month: '2-digit', day: '2-digit' });
   };
- 
+
   // ========== RENDER ==========
   return (
     <div className="auftraege-fullscreen">
@@ -228,7 +172,7 @@ const fetchAuftraege = async () => {
             <span className="label">Übersicht</span>
           </div>
         </div>
- 
+
         <div className="header-controls">
           <div className="suchleiste">
             <input
@@ -242,8 +186,10 @@ const fetchAuftraege = async () => {
             <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
               <option value="alle">Alle</option>
               <option value="erfasst">Erfasst</option>
-              <option value="in-progress">In Bearbeitung</option>
-              <option value="completed">Abgeschlossen</option>
+              <option value="disponiert">Disponiert</option>
+              <option value="ausgeführt">Ausgeführt</option>
+              <option value="freigegeben">Freigegeben</option>
+              <option value="verrechnet">Verrechnet</option>
             </select>
           </div>
           <button className="neu-auftrag-btn" onClick={() => setShowForm(!showForm)}>
@@ -251,14 +197,14 @@ const fetchAuftraege = async () => {
           </button>
         </div>
       </div>
- 
+
       {error && (
         <div className="error-banner">
           <span>{error}</span>
           <button onClick={() => setError(null)}>✕</button>
         </div>
       )}
- 
+
       {showForm && (
         <div className="auftrag-form-container">
           <form className="auftrag-form" onSubmit={handleSubmit}>
@@ -272,8 +218,8 @@ const fetchAuftraege = async () => {
               >
                 <option value="">-- Kunde wählen --</option>
                 {alleKunden.map(kunde => (
-                  <option key={kunde.Kunden_id} value={kunde.Kunden_id}>
-                    {kunde.Firma || `${kunde.Vorname} ${kunde.Name}`}
+                  <option key={kunde.kunden_id} value={kunde.kunden_id}>
+                    {kunde.firma || `${kunde.vorname} ${kunde.name}`}
                   </option>
                 ))}
               </select>
@@ -291,8 +237,10 @@ const fetchAuftraege = async () => {
                 className="custom-select"
               >
                 <option value="erfasst">Erfasst</option>
-                <option value="in-progress">In Bearbeitung</option>
-                <option value="completed">Abgeschlossen</option>
+                <option value="disponiert">Disponiert</option>
+                <option value="ausgeführt">Ausgeführt</option>
+                <option value="freigegeben">Freigegeben</option>
+                <option value="verrechnet">Verrechnet</option>
               </select>
               <input
                 name="Angefangen_am"
@@ -305,7 +253,7 @@ const fetchAuftraege = async () => {
           </form>
         </div>
       )}
- 
+
       {/* AUFTRÄGE KARTEN */}
       <div className="auftraege-karten">
         {loading ? (
@@ -319,30 +267,32 @@ const fetchAuftraege = async () => {
           </div>
         ) : (
           auftraege.map(auftrag => (
-            <div key={auftrag.Auftrag_id} className="auftrag-karte">
+            <div key={auftrag.auftrag_id} className="auftrag-karte">
               <div className="karte-header">
-                <h3>{getKundenName(auftrag.Kunden_id)}</h3>
+                <h3>{getKundenName(auftrag.kunden_id)}</h3>
                 <button
                   className="delete-btn"
-                  onClick={() => handleDelete(auftrag.Auftrag_id)}
+                  onClick={() => handleDelete(auftrag.auftrag_id)}
                   title="Löschen"
                 >
                   ×
                 </button>
               </div>
               <div className="karte-body">
-                <p>{auftrag.Auftragsname}</p>
+                <p>{auftrag.auftragsname}</p>
                 <div className="karte-footer">
                   <select
-                    className={`status-select status-${auftrag.Status}`}
-                    value={auftrag.Status}
-                    onChange={(e) => handleStatusChange(auftrag.Auftrag_id, e.target.value)}
+                    className={`status-select status-${auftrag.status}`}
+                    value={auftrag.status}
+                    onChange={(e) => handleStatusChange(auftrag.auftrag_id, e.target.value)}
                   >
                     <option value="erfasst">Erfasst</option>
-                    <option value="in-progress">In Bearbeitung</option>
-                    <option value="completed">Abgeschlossen</option>
+                    <option value="disponiert">Disponiert</option>
+                    <option value="ausgeführt">Ausgeführt</option>
+                    <option value="freigegeben">Freigegeben</option>
+                    <option value="verrechnet">Verrechnet</option>
                   </select>
-                  <span className="datum">{formatDate(auftrag.Angefangen_am)}</span>
+                  <span className="datum">{formatDate(auftrag.angefangen_am)}</span>
                 </div>
               </div>
             </div>
@@ -352,5 +302,5 @@ const fetchAuftraege = async () => {
     </div>
   );
 }
- 
+
 export default Auftraege;
