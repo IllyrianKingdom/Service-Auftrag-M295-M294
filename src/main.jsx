@@ -11,6 +11,8 @@ import Disposition from "./components/disposition.jsx";
 import Auftraege from "./components/auftraege.jsx";
 import Berichte from "./components/berichte.jsx";
 import Mitarbeiter from "./components/mitarbeiter.jsx";
+import Verrechnungen from "./components/verrechnung.jsx";
+import Kunden from "./components/kunden.jsx";
 
 const router = createBrowserRouter([
   {
@@ -41,16 +43,21 @@ const router = createBrowserRouter([
         path: "/mitarbeiter", 
         element: <ProtectedRoute><Mitarbeiter /></ProtectedRoute>
       },
+      {
+        path: "/kunden", 
+        element: <ProtectedRoute><Kunden /></ProtectedRoute>
+      },
+          {
+        path: "/verrechnung", 
+        element: <ProtectedRoute><Verrechnungen /></ProtectedRoute>
+      },
+
    
     ],
   },
 
   {path: "/dashboard", element: <ProtectedRoute><Dashboard /></ProtectedRoute>}
-
-
-],
-
-);
+]);
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>

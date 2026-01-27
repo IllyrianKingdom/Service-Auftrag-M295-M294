@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import './Mitarbeiter.css';
+import './mitarbeiter.css';
 
 function Mitarbeiter() {
   const [mitarbeiter, setMitarbeiter] = useState([
