@@ -282,12 +282,13 @@
   font-size: 12px;
   font-weight: 600;
   text-transform: uppercase;
-  color: rgb(20, 0, 119) !important;
+  color: rgb(255, 255, 255) !important;
 }
  
 .status-neu { background: rgba(99,102,241,0.3); }
 .status-in-bearbeitung { background: rgba(102,126,234,0.3); }
 .status-abgeschlossen { background: rgba(16,185,129,0.3); }
+.status-urlaub { background: rgba(245,158,11,0.3); }
  
 .status-select {
   background: rgba(26, 0, 120, 0.12) !important;

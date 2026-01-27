@@ -117,6 +117,7 @@ function Mitarbeiter() {
         <div className="timeline-header">
           <span>Name</span>
           <span>Rolle</span>
+          
           <span>Status</span>
           <span>Telefon</span>
           <span></span>
