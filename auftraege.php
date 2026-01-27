@@ -1,13 +1,20 @@
 <?php
-/**
- * Aufträge API mit MySQL (InfinityFree)
- * Datei: /api/auftraege.php
- */
+// ========== CORS HEADERS (MUST BE FIRST) ==========
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, Authorization');
+header('Content-Type: application/json; charset=utf-8');
+
+// Handle preflight requests
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit();
+}
 
 // ========== MySQL CONFIG ==========
 $db_host = 'sql100.infinityfree.com';
 $db_user = 'if0_40887821';
-$db_pass = 'DQmbqjTwHBU'; // ← UPDATE THIS!
+$db_pass = 'DQmbqjTwHBU';
 $db_name = 'if0_40887821_avadb';
 
 // Verbindung erstellen
@@ -22,17 +29,6 @@ if ($conn->connect_error) {
 }
 
 $conn->set_charset("utf8mb4");
-
-// ========== HEADERS ==========
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Authorization');
-header('Content-Type: application/json; charset=utf-8');
-
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
-    exit;
-}
 
 // ========== ROUTING ==========
 $method = $_SERVER['REQUEST_METHOD'];
