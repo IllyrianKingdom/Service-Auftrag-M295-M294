@@ -111,7 +111,7 @@
   backdrop-filter: blur(10px);
   cursor: pointer;
   font-size: 15px;
-
+ 
   background-position: right 12px center;
   background-repeat: no-repeat;
   background-size: 16px;
@@ -288,7 +288,7 @@
 .status-neu { background: rgba(99,102,241,0.3); }
 .status-in-bearbeitung { background: rgba(102,126,234,0.3); }
 .status-abgeschlossen { background: rgba(16,185,129,0.3); }
-
+ 
 .status-select {
   background: rgba(255,255,255,0.12) !important;
   border: 1px solid rgba(255,255,255,0.25) !important;
@@ -301,12 +301,12 @@
   backdrop-filter: blur(10px) !important;
   transition: all 0.3s ease !important;
 }
-
+ 
 .status-select:hover {
   background: rgba(255,255,255,0.18) !important;
   border-color: rgba(255,255,255,0.35) !important;
 }
-
+ 
 .status-select:focus {
   outline: none !important;
   background: rgba(255,255,255,0.15) !important;
