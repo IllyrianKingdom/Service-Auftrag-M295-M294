@@ -28,6 +28,7 @@ function Dashboard() {
             <li><a href="/auftraege" className="menu-item">Aufträge</a></li>
             <li><a href="/disposition" className="menu-item">Disposition</a></li>
             <li><a href="/berichte" className="menu-item">Berichte</a></li>
+            <li><a href="/mitarbeiter" className="menu-item">Mitarbeiter</a></li>
             
             <li><button onClick={handleLogout} className="menu-item logout" style={{background: 'none', border: 'none', cursor: 'pointer', width: '100%', textAlign: 'left'}}>Logout</button></li>
           </ul>

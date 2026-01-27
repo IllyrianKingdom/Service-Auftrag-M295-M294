@@ -5,6 +5,7 @@ export default function ProtectedRoute({ children }) {
   const { user } = useAuth();
 
   // Check multiple sources for token/user existence
+
   const hasContextUser = !!user;
   const hasLocalStorageUser = !!localStorage.getItem("sa_user");
   const hasAuthToken = !!localStorage.getItem("authToken");
@@ -13,12 +14,13 @@ export default function ProtectedRoute({ children }) {
   );
 
   // User is authenticated if they have a token AND context user, or at least have stored credentials
+
   const isAuthenticated = hasAuthToken && (hasContextUser || hasLocalStorageUser);
 
   if (!isAuthenticated) {
     return <Navigate to="/" replace />;
   }
-
+                  
   return children;
 }
 

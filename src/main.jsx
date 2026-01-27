@@ -10,7 +10,7 @@ import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import Disposition from "./components/disposition.jsx";
 import Auftraege from "./components/auftraege.jsx";
 import Berichte from "./components/berichte.jsx";
-
+import Mitarbeiter from "./components/mitarbeiter.jsx";
 
 const router = createBrowserRouter([
   {
@@ -36,6 +36,10 @@ const router = createBrowserRouter([
       {
         path: "/berichte", 
         element: <ProtectedRoute><Berichte /></ProtectedRoute>
+      },
+      {
+        path: "/mitarbeiter", 
+        element: <ProtectedRoute><Mitarbeiter /></ProtectedRoute>
       },
    
     ],
