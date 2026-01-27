@@ -1,9 +1,11 @@
 import './login.css'
 import {useNavigate} from 'react-router-dom';
 import { useState } from 'react';
+import { useAuth } from '../auth/AuthProvider';
 
 function Login() {
     const navigate = useNavigate();
+    const { login } = useAuth();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
@@ -27,13 +29,18 @@ function Login() {
         const user = users.find(u => u.email === email && u.password === password);
 
         if (user) {
-            localStorage.setItem('authToken', 'token_' + user.id);
-            localStorage.setItem('user', JSON.stringify({
+            // Update AuthContext via login
+            const userData = {
                 user_id: user.id,
                 email: user.email,
                 name: user.name
-
-            }));
+            };
+            
+            // Set both localStorage and context
+            localStorage.setItem('authToken', 'token_' + user.id);
+            localStorage.setItem('sa_user', JSON.stringify(userData));
+            login(email, password);
+            
             navigate('/dashboard');
         } else {
             setError('Email oder Passwort falsch');

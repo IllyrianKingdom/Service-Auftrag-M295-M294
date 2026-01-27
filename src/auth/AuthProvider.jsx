@@ -13,16 +13,31 @@ export function AuthProvider({ children }) {
   });
 
   useEffect(() => {
-    if (user) localStorage.setItem("sa_user", JSON.stringify(user));
-    else localStorage.removeItem("sa_user");
+    if (user) {
+      localStorage.setItem("sa_user", JSON.stringify(user));
+    } else {
+      localStorage.removeItem("sa_user");
+      localStorage.removeItem("authToken");
+    }
   }, [user]);
 
-  // Simple example credential check. Replace with real auth as needed.
+  // Login with email and password
   const login = (email, password) => {
-    const validEmail = "admin@example.com";
-    const validPassword = "password";
-    if (email === validEmail && password === validPassword) {
-      setUser({ email });
+    const users = [
+        { id: 1, email: 'benutzer1@example.com', password: 'password123', name: 'Benutzer 1' },
+        { id: 2, email: 'benutzer2@example.com', password: 'password123', name: 'Benutzer 2' },
+        { id: 3, email: 'benutzer3@example.com', password: 'password123', name: 'Benutzer 3' },
+        { id: 4, email: 'benutzer4@example.com', password: 'password123', name: 'Benutzer 4' }
+    ];
+    
+    const foundUser = users.find(u => u.email === email && u.password === password);
+    if (foundUser) {
+      const userData = {
+        user_id: foundUser.id,
+        email: foundUser.email,
+        name: foundUser.name
+      };
+      setUser(userData);
       return true;
     }
     return false;

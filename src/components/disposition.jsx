@@ -141,7 +141,6 @@ function Disposition() {
         </div>
       )}
 
-      {/* DISPOSITION TIMELINE */}
       <div className="disposition-timeline">
         <div className="timeline-header">
           <span>Mitarbeiter</span>
@@ -177,7 +176,7 @@ function Disposition() {
               className="delete-btn"
               onClick={() => handleDelete(dispo.id)}
             >
-              ×
+              
             </button>
           </div>
         ))}
