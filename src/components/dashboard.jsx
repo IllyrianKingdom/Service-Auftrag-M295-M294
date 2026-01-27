@@ -1,11 +1,22 @@
 import './dashboard.css';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../auth/AuthProvider';
+
 function Dashboard() {
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
+
   return (
     <div className="dashboard-page">
       
       <header className="dashboard-header">
         <h1 className="company-name">AVA GmbH</h1>
-        <span className="user-info">BL Vedran Jerkovic</span>
+        <span className="user-info">BL {user?.name || 'User'}</span>
       </header>
       
       <div className="dashboard-layout">
@@ -18,7 +29,7 @@ function Dashboard() {
             <li><a href="/disposition" className="menu-item">Disposition</a></li>
             <li><a href="/berichte" className="menu-item">Berichte</a></li>
             
-            <li><a href="/" className="menu-item logout">Logout</a></li>
+            <li><button onClick={handleLogout} className="menu-item logout" style={{background: 'none', border: 'none', cursor: 'pointer', width: '100%', textAlign: 'left'}}>Logout</button></li>
           </ul>
         </nav>
 
@@ -30,6 +41,6 @@ function Dashboard() {
       </div>
     </div>
   );
-
 }
+
 export default Dashboard;
