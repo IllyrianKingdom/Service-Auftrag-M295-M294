@@ -1,35 +1,35 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import './Auftraege.css';
-
+ 
 function Auftraege() {
   // ========== API CONFIG (VITE) ==========
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://ava-ch.infinityfreeapp.com';
   const AUFTRAEGE_ENDPOINT = `${API_BASE_URL}/api/auftraege.php`;
   const KUNDEN_ENDPOINT = `${API_BASE_URL}/api/kunden.php`;
-
+ 
   // ========== STATE ==========
   const [alleAuftraege, setAlleAuftraege] = useState([]);
   const [auftraege, setAuftraege] = useState([]);
   const [alleKunden, setAlleKunden] = useState([]);
-  const [neuerAuftrag, setNeuerAuftrag] = useState({ 
-    Kunden_id: '', 
-    Auftragsname: '', 
-    Status: 'erfasst', 
-    Angefangen_am: '' 
+  const [neuerAuftrag, setNeuerAuftrag] = useState({
+    Kunden_id: '',
+    Auftragsname: '',
+    Status: 'erfasst',
+    Angefangen_am: ''
   });
   const [showForm, setShowForm] = useState(false);
   const [suchbegriff, setSuchbegriff] = useState('');
   const [filterStatus, setFilterStatus] = useState('alle');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
+ 
   // ========== FETCH AUFTRAEGE & KUNDEN ==========
   useEffect(() => {
     fetchAuftraege();
     fetchKunden();
   }, []);
-
+ 
 // Add this fetch helper with CORS mode
 const fetchWithCORS = async (url, options = {}) => {
   return fetch(url, {
@@ -41,15 +41,15 @@ const fetchWithCORS = async (url, options = {}) => {
     }
   });
 };
-
+ 
 // Usage in your functions:
 const fetchAuftraege = async () => {
   try {
     setLoading(true);
     const response = await fetchWithCORS(AUFTRAEGE_ENDPOINT);
-    
+   
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    
+   
     const data = await response.json();
     setAlleAuftraege(data);
     setError(null);
@@ -60,13 +60,13 @@ const fetchAuftraege = async () => {
     setLoading(false);
   }
 };
-
+ 
   const fetchKunden = async () => {
     try {
       const response = await fetch(KUNDEN_ENDPOINT);
-      
+     
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      
+     
       const data = await response.json();
       setAlleKunden(data);
     } catch (err) {
@@ -74,16 +74,16 @@ const fetchAuftraege = async () => {
       setError('Kunden konnten nicht geladen werden');
     }
   };
-
+ 
   // ========== FILTER & SEARCH ==========
   useEffect(() => {
     let gefilterte = alleAuftraege;
-
+ 
     // Status Filter
     if (filterStatus !== 'alle') {
       gefilterte = gefilterte.filter(auftrag => auftrag.Status === filterStatus);
     }
-
+ 
     // Suche (nach Firma oder Auftragsname)
     if (suchbegriff) {
       gefilterte = gefilterte.filter(auftrag =>
@@ -91,27 +91,27 @@ const fetchAuftraege = async () => {
         auftrag.Auftragsname.toLowerCase().includes(suchbegriff.toLowerCase())
       );
     }
-
+ 
     setAuftraege(gefilterte);
   }, [suchbegriff, filterStatus, alleAuftraege]);
-
+ 
   // ========== FORM HANDLERS ==========
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setNeuerAuftrag(prev => ({ 
-      ...prev, 
-      [name]: value 
+    setNeuerAuftrag(prev => ({
+      ...prev,
+      [name]: value
     }));
   };
-
+ 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+ 
     if (!neuerAuftrag.Kunden_id || !neuerAuftrag.Auftragsname) {
       setError('Bitte füllen Sie alle erforderlichen Felder aus');
       return;
     }
-
+ 
     try {
       const payload = {
         Kunden_id: parseInt(neuerAuftrag.Kunden_id),
@@ -120,28 +120,28 @@ const fetchAuftraege = async () => {
         Angefangen_am: neuerAuftrag.Angefangen_am || new Date().toISOString().split('T')[0],
         Erfasst_von: 1 // ← Update with actual user ID from auth
       };
-
+ 
       const response = await fetch(AUFTRAEGE_ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-
+ 
       const result = await response.json();
-
+ 
       if (!response.ok) {
         throw new Error(result.message || 'Fehler beim Erstellen des Auftrags');
       }
-
+ 
       // Refresh auftraege list
       await fetchAuftraege();
-      
+     
       // Reset form
-      setNeuerAuftrag({ 
-        Kunden_id: '', 
-        Auftragsname: '', 
-        Status: 'erfasst', 
-        Angefangen_am: '' 
+      setNeuerAuftrag({
+        Kunden_id: '',
+        Auftragsname: '',
+        Status: 'erfasst',
+        Angefangen_am: ''
       });
       setShowForm(false);
       setError(null);
@@ -150,23 +150,23 @@ const fetchAuftraege = async () => {
       setError(`Fehler: ${err.message}`);
     }
   };
-
+ 
   const handleDelete = async (auftrag_id) => {
     if (!window.confirm('Diesen Auftrag wirklich löschen?')) return;
-
+ 
     try {
       const response = await fetch(`${AUFTRAEGE_ENDPOINT}?delete`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ Auftrag_id: auftrag_id })
       });
-
+ 
       const result = await response.json();
-
+ 
       if (!response.ok) {
         throw new Error(result.message || 'Fehler beim Löschen des Auftrags');
       }
-
+ 
       // Refresh auftraege list
       await fetchAuftraege();
       setError(null);
@@ -175,24 +175,24 @@ const fetchAuftraege = async () => {
       setError(`Fehler: ${err.message}`);
     }
   };
-
+ 
   const handleStatusChange = async (auftrag_id, newStatus) => {
     try {
       const response = await fetch(`${AUFTRAEGE_ENDPOINT}?update`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           Auftrag_id: auftrag_id,
-          Status: newStatus 
+          Status: newStatus
         })
       });
-
+ 
       const result = await response.json();
-
+ 
       if (!response.ok) {
         throw new Error(result.message || 'Fehler beim Aktualisieren des Status');
       }
-
+ 
       // Refresh auftraege list
       await fetchAuftraege();
       setError(null);
@@ -201,19 +201,19 @@ const fetchAuftraege = async () => {
       setError(`Fehler: ${err.message}`);
     }
   };
-
+ 
   // ========== HELPER FUNCTIONS ==========
   const getKundenName = (kunden_id) => {
     const kunde = alleKunden.find(k => k.Kunden_id === kunden_id);
     return kunde ? (kunde.Firma || `${kunde.Vorname} ${kunde.Name}`) : 'Unbekannt';
   };
-
+ 
   const formatDate = (dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
     return date.toLocaleDateString('de-CH', { month: '2-digit', day: '2-digit' });
   };
-
+ 
   // ========== RENDER ==========
   return (
     <div className="auftraege-fullscreen">
@@ -228,7 +228,7 @@ const fetchAuftraege = async () => {
             <span className="label">Übersicht</span>
           </div>
         </div>
-
+ 
         <div className="header-controls">
           <div className="suchleiste">
             <input
@@ -251,14 +251,14 @@ const fetchAuftraege = async () => {
           </button>
         </div>
       </div>
-
+ 
       {error && (
         <div className="error-banner">
           <span>{error}</span>
           <button onClick={() => setError(null)}>✕</button>
         </div>
       )}
-
+ 
       {showForm && (
         <div className="auftrag-form-container">
           <form className="auftrag-form" onSubmit={handleSubmit}>
@@ -284,10 +284,10 @@ const fetchAuftraege = async () => {
                 onChange={handleInputChange}
                 required
               />
-              <select 
-                name="Status" 
-                value={neuerAuftrag.Status} 
-                onChange={handleInputChange} 
+              <select
+                name="Status"
+                value={neuerAuftrag.Status}
+                onChange={handleInputChange}
                 className="custom-select"
               >
                 <option value="erfasst">Erfasst</option>
@@ -305,7 +305,7 @@ const fetchAuftraege = async () => {
           </form>
         </div>
       )}
-
+ 
       {/* AUFTRÄGE KARTEN */}
       <div className="auftraege-karten">
         {loading ? (
@@ -322,8 +322,8 @@ const fetchAuftraege = async () => {
             <div key={auftrag.Auftrag_id} className="auftrag-karte">
               <div className="karte-header">
                 <h3>{getKundenName(auftrag.Kunden_id)}</h3>
-                <button 
-                  className="delete-btn" 
+                <button
+                  className="delete-btn"
                   onClick={() => handleDelete(auftrag.Auftrag_id)}
                   title="Löschen"
                 >
@@ -352,5 +352,5 @@ const fetchAuftraege = async () => {
     </div>
   );
 }
-
+ 
 export default Auftraege;

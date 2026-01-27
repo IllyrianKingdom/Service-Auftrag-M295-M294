@@ -1,61 +1,28 @@
 <?php
-// ========== CORS HEADERS (MUST BE FIRST) ==========
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Authorization');
-header('Content-Type: application/json; charset=utf-8');
+require_once 'config.php';
 
-// Handle preflight requests
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
-    exit();
-}
+setCorsHeaders();
+handlePreflight();
 
-// ========== MySQL CONFIG ==========
-$db_host = 'sql100.infinityfree.com';
-$db_user = 'if0_40887821';
-$db_pass = 'DQmbqjTwHBU';
-$db_name = 'if0_40887821_avadb';
-
-// Verbindung erstellen
-$conn = new mysqli($db_host, $db_user, $db_pass, $db_name);
-
-if ($conn->connect_error) {
-    http_response_code(500);
-    die(json_encode([
-        'error' => 'Database connection failed',
-        'message' => $conn->connect_error
-    ]));
-}
-
-$conn->set_charset("utf8mb4");
-
-// ========== ROUTING ==========
+$conn = getDBConnection();
 $method = $_SERVER['REQUEST_METHOD'];
-$request_uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-$route = str_replace('/api/auftraege', '', $request_uri);
 
 try {
     if ($method === 'GET') {
         getAllAuftraege($conn);
     } elseif ($method === 'POST') {
-        if (strpos($route, 'update') !== false) {
+        if (strpos($_SERVER['REQUEST_URI'], 'update') !== false) {
             updateAuftrag($conn);
-        } elseif (strpos($route, 'delete') !== false) {
+        } elseif (strpos($_SERVER['REQUEST_URI'], 'delete') !== false) {
             deleteAuftrag($conn);
         } else {
             createAuftrag($conn);
         }
     } else {
-        http_response_code(405);
-        echo json_encode(['error' => 'Method not allowed']);
+        sendError(405, 'Method not allowed');
     }
 } catch (Exception $e) {
-    http_response_code(500);
-    echo json_encode([
-        'error' => 'Server error',
-        'message' => $e->getMessage()
-    ]);
+    sendError(500, $e->getMessage());
 } finally {
     $conn->close();
 }
@@ -84,14 +51,8 @@ function getAllAuftraege($conn) {
     ";
     
     $result = $conn->query($query);
-    
     if (!$result) {
-        http_response_code(500);
-        echo json_encode([
-            'error' => 'Failed to fetch auftraege',
-            'message' => $conn->error
-        ]);
-        return;
+        sendError(500, $conn->error);
     }
     
     $auftraege = [];
@@ -104,12 +65,10 @@ function getAllAuftraege($conn) {
 }
 
 function createAuftrag($conn) {
-    $data = json_decode(file_get_contents('php://input'), true);
+    $data = getJsonInput();
     
     if (!isset($data['Auftragsname']) || !isset($data['Kunden_id'])) {
-        http_response_code(400);
-        echo json_encode(['error' => 'Missing required fields']);
-        return;
+        sendError(400, 'Missing required fields: Auftragsname, Kunden_id');
     }
     
     $auftragsname = $conn->real_escape_string($data['Auftragsname']);
@@ -120,90 +79,57 @@ function createAuftrag($conn) {
     
     $query = "
         INSERT INTO Auftraege (
-            Auftragsname,
-            Kunden_id,
-            Status,
-            Angefangen_am,
-            Erfasst_von,
-            Erfasst_am
+            Auftragsname, Kunden_id, Status, Angefangen_am, Erfasst_von, Erfasst_am
         ) VALUES (
-            '$auftragsname',
-            $kunden_id,
-            '$status',
-            '$angefangen_am',
-            $erfasst_von,
-            NOW()
+            '$auftragsname', $kunden_id, '$status', '$angefangen_am', $erfasst_von, NOW()
         )
     ";
     
     if (!$conn->query($query)) {
-        http_response_code(500);
-        echo json_encode([
-            'success' => false,
-            'error' => 'Failed to create auftrag',
-            'message' => $conn->error
-        ]);
-        return;
+        sendError(500, $conn->error);
     }
-    
-    $auftrag_id = $conn->insert_id;
     
     http_response_code(201);
     echo json_encode([
         'success' => true,
         'message' => 'Auftrag created successfully',
-        'auftrag_id' => $auftrag_id
+        'auftrag_id' => $conn->insert_id
     ]);
 }
 
 function updateAuftrag($conn) {
-    $data = json_decode(file_get_contents('php://input'), true);
+    $data = getJsonInput();
     
     if (!isset($data['Auftrag_id']) || !isset($data['Status'])) {
-        http_response_code(400);
-        echo json_encode(['error' => 'Missing required fields']);
-        return;
+        sendError(400, 'Missing required fields: Auftrag_id, Status');
     }
     
     $auftrag_id = (int)$data['Auftrag_id'];
     $status = $conn->real_escape_string($data['Status']);
+    $erledigt_am = isset($data['Erledigt_am']) ? "'" . $conn->real_escape_string($data['Erledigt_am']) . "'" : "NULL";
     
     $query = "
         UPDATE Auftraege
-        SET Status = '$status'
+        SET Status = '$status', Erledigt_am = $erledigt_am
         WHERE Auftrag_id = $auftrag_id
     ";
     
     if (!$conn->query($query)) {
-        http_response_code(500);
-        echo json_encode([
-            'success' => false,
-            'error' => 'Failed to update auftrag',
-            'message' => $conn->error
-        ]);
-        return;
+        sendError(500, $conn->error);
     }
     
     if ($conn->affected_rows === 0) {
-        http_response_code(404);
-        echo json_encode(['error' => 'Auftrag not found']);
-        return;
+        sendError(404, 'Auftrag not found');
     }
     
-    http_response_code(200);
-    echo json_encode([
-        'success' => true,
-        'message' => 'Auftrag updated successfully'
-    ]);
+    sendSuccess([], 'Auftrag updated successfully');
 }
 
 function deleteAuftrag($conn) {
-    $data = json_decode(file_get_contents('php://input'), true);
+    $data = getJsonInput();
     
     if (!isset($data['Auftrag_id'])) {
-        http_response_code(400);
-        echo json_encode(['error' => 'Missing Auftrag_id']);
-        return;
+        sendError(400, 'Missing Auftrag_id');
     }
     
     $auftrag_id = (int)$data['Auftrag_id'];
@@ -211,25 +137,13 @@ function deleteAuftrag($conn) {
     $query = "DELETE FROM Auftraege WHERE Auftrag_id = $auftrag_id";
     
     if (!$conn->query($query)) {
-        http_response_code(500);
-        echo json_encode([
-            'success' => false,
-            'error' => 'Failed to delete auftrag',
-            'message' => $conn->error
-        ]);
-        return;
+        sendError(500, $conn->error);
     }
     
     if ($conn->affected_rows === 0) {
-        http_response_code(404);
-        echo json_encode(['error' => 'Auftrag not found']);
-        return;
+        sendError(404, 'Auftrag not found');
     }
     
-    http_response_code(200);
-    echo json_encode([
-        'success' => true,
-        'message' => 'Auftrag deleted successfully'
-    ]);
+    sendSuccess([], 'Auftrag deleted successfully');
 }
 ?>
