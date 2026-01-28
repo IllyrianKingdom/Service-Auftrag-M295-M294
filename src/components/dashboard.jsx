@@ -7,6 +7,7 @@ import { SiGoogletasks } from "react-icons/si";
 import { FaCarSide } from "react-icons/fa";
 import { HiOutlineDocumentReport } from "react-icons/hi";
 import { IoIosPeople } from "react-icons/io";
+import { FaFileInvoiceDollar } from "react-icons/fa";
 
 function Dashboard() {
   
@@ -79,6 +80,20 @@ function Dashboard() {
                 <div className="stat-info">
                   <h3>Mitarbeiter</h3>
                   <p className="stat-count">15</p>
+                </div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-icon mitarbeiter"><IoIosPeople /></div>
+                <div className="stat-info">
+                  <h3>Kunden</h3>
+                  <p className="stat-count">15</p>    
+                </div>
+                 </div>
+              <div className="stat-card">
+                <div className="stat-icon mitarbeiter"><FaFileInvoiceDollar /></div>
+                <div className="stat-info">
+                  <h3>Verrechnungen</h3>
+                  <p className="stat-count">15</p>    
                 </div>
               </div>
             </div>
