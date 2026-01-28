@@ -1,48 +1,50 @@
 <?php
-// ============ CORS HEADERS (MUST BE FIRST!) ============
+// ============ ERROR HANDLING ============
+error_reporting(E_ALL);
+ini_set('display_errors', 0);
+ini_set('log_errors', 1);
+ini_set('error_log', '/var/log/php_errors.log');
+
+// ============ CORS HEADERS (WICHTIG!) ============
 header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization');
 header('Content-Type: application/json; charset=utf-8');
 
-
-// ============ PREFLIGHT REQUEST ============
+// ============ PREFLIGHT HANDLING ============
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit();
 }
 
+// ============ DATABASE CONNECTION (PostgreSQL) ============
+function getDBConnection() {
+    try {
+        $dsn = 'pgsql:host=aws-1-eu-central-1.pooler.supabase.com' . 
+               ';port=5432' . 
+               ';dbname=postgres' . 
+               ';sslmode=require';
+        
+        $pdo = new PDO($dsn, 'postgres.kemkyxpxvpxikuusrubo', 'VedranAlessioArnis', [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::ATTR_PERSISTENT => false
+        ]);
+        return $pdo;
+    } catch (PDOException $e) {
+        sendError(500, 'Database connection failed: ' . $e->getMessage());
+    }
+}
 
-// ============ ERROR REPORTING (DEVELOPMENT) ============
-error_reporting(E_ALL);
-ini_set('display_errors', '1');
-ini_set('log_errors', '1');
-
-
-// ============ DEPENDENCIES ============
-require_once 'config.php';
-
-
-// ============ HELPER FUNCTIONS (FEHLEND!) ============
-
-/**
- * Liest JSON aus Request Body
- */
+// ============ HELPER FUNCTIONS ============
 function getJsonInput() {
     $input = file_get_contents('php://input');
     if (empty($input)) {
-        sendError(400, 'Empty request body');
+        return [];
     }
-    $data = json_decode($input, true);
-    if ($data === null && json_last_error() !== JSON_ERROR_NONE) {
-        sendError(400, 'Invalid JSON: ' . json_last_error_msg());
-    }
-    return $data;
+    return json_decode($input, true) ?? [];
 }
 
-/**
- * Sendet Error Response
- */
 function sendError($code, $message) {
     http_response_code($code);
     echo json_encode([
@@ -52,9 +54,6 @@ function sendError($code, $message) {
     exit();
 }
 
-/**
- * Sendet Success Response
- */
 function sendSuccess($data = [], $message = 'Success') {
     http_response_code(200);
     echo json_encode([
@@ -65,9 +64,6 @@ function sendSuccess($data = [], $message = 'Success') {
     exit();
 }
 
-/**
- * Sendet Created Response (201)
- */
 function sendCreated($id, $message = 'Created') {
     http_response_code(201);
     echo json_encode([
@@ -78,18 +74,15 @@ function sendCreated($id, $message = 'Created') {
     exit();
 }
 
-
 // ============ MAIN ROUTER ============
 try {
     $conn = getDBConnection();
     $method = $_SERVER['REQUEST_METHOD'];
-    
-    // Router basierend auf HTTP Method
+
     if ($method === 'GET') {
         getAllAuftraege($conn);
     } elseif ($method === 'POST') {
         $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_QUERY);
-        
         if (strpos($path, 'delete') !== false) {
             deleteAuftrag($conn);
         } elseif (strpos($path, 'update') !== false) {
@@ -108,11 +101,10 @@ try {
     }
 }
 
-
 // ============ GET ALL AUFTRAEGE ============
 function getAllAuftraege($pdo) {
     $query = "
-        SELECT 
+        SELECT
             a.auftrag_id,
             a.auftragsname,
             a.angefangen_am,
@@ -132,13 +124,13 @@ function getAllAuftraege($pdo) {
         LEFT JOIN kunde k ON a.kunden_id = k.kunden_id
         ORDER BY a.angefangen_am DESC
     ";
-
+    
     try {
         $stmt = $pdo->prepare($query);
         $stmt->execute();
-        $auftraege = $stmt->fetchAll(PDO::FETCH_ASSOC);  // ← PDO-Magie!
+        $auftraege = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
-        echo json_encode($auftraege);  // ← Dein Array für React
+        echo json_encode($auftraege);
         exit();
     } catch (PDOException $e) {
         sendError(500, 'Query failed: ' . $e->getMessage());
@@ -148,116 +140,105 @@ function getAllAuftraege($pdo) {
 // ============ CREATE AUFTRAG ============
 function createAuftrag($conn) {
     $data = getJsonInput();
-
+    
     // Validation
     if (empty($data['Auftragsname']) || empty($data['Kunden_id'])) {
         sendError(400, 'Missing required fields: Auftragsname, Kunden_id');
     }
-
-    $auftragsname = trim($data['Auftragsname']);
-    $kunden_id = (int)$data['Kunden_id'];
-    $status = $data['Status'] ?? 'erfasst';
-    $angefangen_am = $data['Angefangen_am'] ?? date('Y-m-d');
-    $erfasst_von = (int)($data['Erfasst_von'] ?? 1);
-
-    $stmt = $conn->prepare("
-        INSERT INTO auftraege 
-        (auftragsname, kunden_id, status, angefangen_am, erfasst_von, erfasst_am)
-        VALUES (?, ?, ?, ?, ?, NOW())
-    ");
-
-    if (!$stmt) {
-        sendError(500, 'Prepare failed: ' . $conn->error);
-    }
-
-    // WICHTIG: Richtige Reihenfolge! s=string, i=integer
-    // auftragsname(s), kunden_id(i), status(s), angefangen_am(s), erfasst_von(i)
-    if (!$stmt->bind_param("sissi", $auftragsname, $kunden_id, $status, $angefangen_am, $erfasst_von)) {
-        sendError(500, 'Bind failed: ' . $stmt->error);
-    }
-
-    if (!$stmt->execute()) {
-        sendError(500, 'Execute failed: ' . $stmt->error);
-    }
-
-    $insertId = $stmt->insert_id;
-    $stmt->close();
     
-    sendCreated($insertId, 'Auftrag created successfully');
+    try {
+        $auftragsname = trim($data['Auftragsname']);
+        $kunden_id = (int)$data['Kunden_id'];
+        $status = $data['Status'] ?? 'erfasst';
+        $angefangen_am = $data['Angefangen_am'] ?? date('Y-m-d');
+        $erfasst_von = (int)($data['Erfasst_von'] ?? 1);
+        
+        $stmt = $conn->prepare("
+            INSERT INTO auftraege
+            (auftragsname, kunden_id, status, angefangen_am, erfasst_von, erfasst_am)
+            VALUES (:auftragsname, :kunden_id, :status, :angefangen_am, :erfasst_von, NOW())
+            RETURNING auftrag_id
+        ");
+        
+        $stmt->bindParam(':auftragsname', $auftragsname);
+        $stmt->bindParam(':kunden_id', $kunden_id, PDO::PARAM_INT);
+        $stmt->bindParam(':status', $status);
+        $stmt->bindParam(':angefangen_am', $angefangen_am);
+        $stmt->bindParam(':erfasst_von', $erfasst_von, PDO::PARAM_INT);
+        
+        if (!$stmt->execute()) {
+            sendError(500, 'Execute failed: ' . implode(', ', $stmt->errorInfo()));
+        }
+        
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        $insertId = $result['auftrag_id'];
+        sendCreated($insertId, 'Auftrag created successfully');
+    } catch (PDOException $e) {
+        sendError(500, 'Create failed: ' . $e->getMessage());
+    }
 }
-
 
 // ============ UPDATE AUFTRAG ============
 function updateAuftrag($conn) {
     $data = getJsonInput();
-
+    
     if (empty($data['Auftrag_id']) || empty($data['Status'])) {
         sendError(400, 'Missing required fields: Auftrag_id, Status');
     }
-
-    $auftrag_id = (int)$data['Auftrag_id'];
-    $status = trim($data['Status']);
-    $erledigt_am = !empty($data['Erledigt_am']) ? $data['Erledigt_am'] : null;
-
-    $stmt = $conn->prepare("
-        UPDATE auftraege
-        SET status = ?, erledigt_am = ?
-        WHERE auftrag_id = ?
-    ");
-
-    if (!$stmt) {
-        sendError(500, 'Prepare failed: ' . $conn->error);
+    
+    try {
+        $auftrag_id = (int)$data['Auftrag_id'];
+        $status = trim($data['Status']);
+        $erledigt_am = !empty($data['Erledigt_am']) ? $data['Erledigt_am'] : null;
+        
+        $stmt = $conn->prepare("
+            UPDATE auftraege
+            SET status = :status, erledigt_am = :erledigt_am
+            WHERE auftrag_id = :auftrag_id
+        ");
+        
+        $stmt->bindParam(':status', $status);
+        $stmt->bindParam(':erledigt_am', $erledigt_am);
+        $stmt->bindParam(':auftrag_id', $auftrag_id, PDO::PARAM_INT);
+        
+        if (!$stmt->execute()) {
+            sendError(500, 'Execute failed: ' . implode(', ', $stmt->errorInfo()));
+        }
+        
+        if ($stmt->rowCount() === 0) {
+            sendError(404, 'Auftrag not found');
+        }
+        
+        sendSuccess([], 'Auftrag updated successfully');
+    } catch (PDOException $e) {
+        sendError(500, 'Update failed: ' . $e->getMessage());
     }
-
-    if (!$stmt->bind_param("ssi", $status, $erledigt_am, $auftrag_id)) {
-        sendError(500, 'Bind failed: ' . $stmt->error);
-    }
-
-    if (!$stmt->execute()) {
-        sendError(500, 'Execute failed: ' . $stmt->error);
-    }
-
-    if ($stmt->affected_rows === 0) {
-        $stmt->close();
-        sendError(404, 'Auftrag not found');
-    }
-
-    $stmt->close();
-    sendSuccess([], 'Auftrag updated successfully');
 }
-
 
 // ============ DELETE AUFTRAG ============
 function deleteAuftrag($conn) {
     $data = getJsonInput();
-
+    
     if (empty($data['Auftrag_id'])) {
         sendError(400, 'Missing Auftrag_id');
     }
-
-    $auftrag_id = (int)$data['Auftrag_id'];
-
-    $stmt = $conn->prepare("DELETE FROM auftraege WHERE auftrag_id = ?");
-
-    if (!$stmt) {
-        sendError(500, 'Prepare failed: ' . $conn->error);
+    
+    try {
+        $auftrag_id = (int)$data['Auftrag_id'];
+        $stmt = $conn->prepare("DELETE FROM auftraege WHERE auftrag_id = :auftrag_id");
+        $stmt->bindParam(':auftrag_id', $auftrag_id, PDO::PARAM_INT);
+        
+        if (!$stmt->execute()) {
+            sendError(500, 'Execute failed: ' . implode(', ', $stmt->errorInfo()));
+        }
+        
+        if ($stmt->rowCount() === 0) {
+            sendError(404, 'Auftrag not found');
+        }
+        
+        sendSuccess([], 'Auftrag deleted successfully');
+    } catch (PDOException $e) {
+        sendError(500, 'Delete failed: ' . $e->getMessage());
     }
-
-    if (!$stmt->bind_param("i", $auftrag_id)) {
-        sendError(500, 'Bind failed: ' . $stmt->error);
-    }
-
-    if (!$stmt->execute()) {
-        sendError(500, 'Execute failed: ' . $stmt->error);
-    }
-
-    if ($stmt->affected_rows === 0) {
-        $stmt->close();
-        sendError(404, 'Auftrag not found');
-    }
-
-    $stmt->close();
-    sendSuccess([], 'Auftrag deleted successfully');
 }
-
 ?>
