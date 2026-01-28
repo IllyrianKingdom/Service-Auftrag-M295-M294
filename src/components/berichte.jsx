@@ -135,7 +135,7 @@ function Berichte() {
           </button>
           {selectedBericht && (
             <button className="export-btn" onClick={handleExport}>
-              📥 Export
+              Export
             </button>
           )}
         </div>
@@ -153,10 +153,10 @@ function Berichte() {
                 onChange={(e) => handleTypChange(e.target.value)} 
                 required
               >
-                <option value="">📋 Typ wählen</option>
-                <option value="Aufträge">📋 Aufträge ({auftraege.length})</option>
-                <option value="Disposition">👥 Mitarbeiter ({mitarbeiter.length})</option>
-                <option value="Finanzen">💰 Verrechnungen ({verrechnungen.length})</option>
+                <option value=""> Typ wählen</option>
+                <option value="Aufträge"> Aufträge ({auftraege.length})</option>
+                <option value="Disposition"> Mitarbeiter ({mitarbeiter.length})</option>
+                <option value="Finanzen"> Verrechnungen ({verrechnungen.length})</option>
               </select>
 
               {/* AUFTRAG AUSWAHL */}
@@ -167,7 +167,7 @@ function Berichte() {
                   onChange={handleInputChange}
                   className="auftrag-auswahl"
                 >
-                  <option value="">🌐 Alle Aufträge</option>
+                  <option value=""> Alle Aufträge</option>
                   {auftraege.map(auftrag => (
                     <option key={auftrag.id} value={auftrag.id}>
                       {auftrag.kunde} - {auftrag.aufgabe}
@@ -176,7 +176,6 @@ function Berichte() {
                 </select>
               )}
 
-              {/* MITARBEITER AUSWAHL */}
               {neuerBericht.typ === 'Disposition' && (
                 <select 
                   name="auftragId" 
@@ -184,7 +183,7 @@ function Berichte() {
                   onChange={handleInputChange}
                   className="mitarbeiter-auswahl"
                 >
-                  <option value="">👥 Alle Mitarbeiter</option>
+                  <option value=""> Alle Mitarbeiter</option>
                   {mitarbeiter.map(mitarbeiter => (
                     <option key={mitarbeiter.id} value={mitarbeiter.id}>
                       {mitarbeiter.name}
@@ -202,9 +201,10 @@ function Berichte() {
               />
               <input 
                 name="zeitraum" 
-                placeholder="Zeitraum (z.B. Januar 2026)" 
-                value={neuerBericht.zeitraum} 
-                onChange={handleInputChange} 
+                placeholder="Zeitraum"
+                type='date' 
+                value={neuerBericht.zeitraum}
+                onChange={handleInputChange}    
                 required 
               />
               <input 

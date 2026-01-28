@@ -74,7 +74,7 @@ const getKundenName = (kunden_id, alleKunden) => {
   const formatDate = (dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
-    return date.toLocaleDateString('de-CH', { month: '2-digit', day: '2-digit', year: '2-digit' });
+    return date.toLocaleDateString('de-CH', { month: '2-digit', day: '2-digit', year: '4-digit' });
   };
 
 const createEmptyAuftrag = () => ({

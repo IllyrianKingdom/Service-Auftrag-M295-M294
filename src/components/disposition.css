@@ -200,10 +200,14 @@
 
 .dispo-termin {
   font-weight: 600;
-  color: #ffffff;
+  color: #10b981 !important;
  
   font-size: 16px;
   
+}
+
+.dispo-termin span {
+  color: #10b981 !important;
 }
 
 /* STATUS */
