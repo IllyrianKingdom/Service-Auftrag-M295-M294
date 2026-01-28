@@ -9,7 +9,7 @@ export const API_ENDPOINTS = {
   auftraege: `${API_BASE}/auftraege.php`,
   disposition: `${API_BASE}/disposition.php`,
   rapportieren: `${API_BASE}/rapportieren.php`,
-  verrechnung: `${API_BASE}/verrechnung.php`,
+  verrechnung: `${API_BASE}/verrechnungen.php`,
 };
 
 // ========== GENERIC FETCH WRAPPER ==========
@@ -28,25 +28,45 @@ export async function apiCall(endpoint, method = 'GET', data = null) {
 
   try {
     const response = await fetch(endpoint, options);
+
+    // ========== CHECK RESPONSE STATUS FIRST =========
+    // WICHTIG: Status prüfen BEVOR wir .json() parsen
+    if (!response.ok) {
+      // Wenn HTTP-Fehler: Versuche HTML/Text zu lesen
+      const errorText = await response.text();
+      
+      // Versuche JSON zu parsen, falls vorhanden
+      let errorMessage = 'API request failed';
+      try {
+        const errorJson = JSON.parse(errorText);
+        errorMessage = errorJson.error || errorJson.message || errorText;
+      } catch {
+        // Falls nicht JSON, nutze Rohen Text
+        errorMessage = errorText.substring(0, 200); // Erste 200 Zeichen
+      }
+      
+      throw new Error(`HTTP ${response.status}: ${errorMessage}`);
+    }
+
+    // ========== PARSE JSON (Jetzt sicher!) =========
     const json = await response.json();
 
     // ========== RESPONSE HANDLING ==========
     // GET Requests: Returns array directly
     if (method === 'GET') {
-      if (!response.ok) {
-        throw new Error(json.error || 'Failed to fetch data');
-      }
       return Array.isArray(json) ? json : [];
     }
 
     // POST/PUT/DELETE Requests: Returns { success: true, data: ... }
-    if (!response.ok || !json.success) {
-      throw new Error(json.error || 'API request failed');
+    // Check für success flag
+    if (!json.success) {
+      throw new Error(json.error || json.message || 'API request failed');
     }
 
     return json;
   } catch (error) {
     console.error('API Error:', error);
+    console.error('Error Stack:', error.stack);
     throw error;
   }
 }

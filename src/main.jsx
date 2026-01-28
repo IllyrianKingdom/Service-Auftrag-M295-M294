@@ -11,7 +11,7 @@ import Disposition from "./components/disposition.jsx";
 import Auftraege from "./components/auftraege.jsx";
 import Berichte from "./components/berichte.jsx";
 import Mitarbeiter from "./components/mitarbeiter.jsx";
-import Verrechnungen from "./components/verrechnung.jsx";
+import Verrechnungen from "./components/verrechnungen.jsx";
 import Kunden from "./components/kunden.jsx";
 
 const router = createBrowserRouter([
@@ -48,7 +48,7 @@ const router = createBrowserRouter([
         element: <ProtectedRoute><Kunden /></ProtectedRoute>
       },
           {
-        path: "/verrechnung", 
+        path: "/verrechnungen", 
         element: <ProtectedRoute><Verrechnungen /></ProtectedRoute>
       },
 

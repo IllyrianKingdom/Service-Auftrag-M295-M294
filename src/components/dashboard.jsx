@@ -40,7 +40,7 @@ function Dashboard() {
             <li><a href="/berichte" className="menu-item">Berichte</a></li>
             <li><a href="/mitarbeiter" className="menu-item">Mitarbeiter</a></li>
             <li><a href="/kunden" className="menu-item">Kunden</a></li>
-            <li><a href="/verrechnung" className="menu-item">Verrechnung</a></li>
+            <li><a href="/verrechnungen" className="menu-item">Verrechnungen</a></li>
 
             <li><button onClick={handleLogout} className="menu-item logout" style={{background: 'none', border: 'none', cursor: 'pointer', width: '100%', textAlign: 'left'}}>Logout</button></li>
           </ul>

@@ -1,17 +1,83 @@
 <?php
+// ============ CORS HEADERS (MUST BE FIRST!) ============
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, Authorization');
+header('Content-Type: application/json; charset=utf-8');
+
+
+// ============ PREFLIGHT REQUEST ============
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit();
+}
+
+
+// ============ DEPENDENCIES ============
 require_once 'config.php';
 
-$conn = getDBConnection();
-$method = $_SERVER['REQUEST_METHOD'];
 
+// ============ HELPER FUNCTIONS ============
+function getJsonInput() {
+    $input = file_get_contents('php://input');
+    if (empty($input)) {
+        sendError(400, 'Empty request body');
+    }
+    $data = json_decode($input, true);
+    if ($data === null && json_last_error() !== JSON_ERROR_NONE) {
+        sendError(400, 'Invalid JSON: ' . json_last_error_msg());
+    }
+    return $data;
+}
+
+
+function sendError($code, $message) {
+    http_response_code($code);
+    echo json_encode([
+        'success' => false,
+        'error' => $message
+    ]);
+    exit();
+}
+
+
+function sendSuccess($data = [], $message = 'Success') {
+    http_response_code(200);
+    echo json_encode([
+        'success' => true,
+        'message' => $message,
+        'data' => $data
+    ]);
+    exit();
+}
+
+
+function sendCreated($id, $message = 'Created') {
+    http_response_code(201);
+    echo json_encode([
+        'success' => true,
+        'message' => $message,
+        'data' => ['id' => $id]
+    ]);
+    exit();
+}
+
+
+// ============ MAIN ROUTER (FIXED!) ============
 try {
+    $conn = getDBConnection();
+    $method = $_SERVER['REQUEST_METHOD'];
+    
     if ($method === 'GET') {
         getAllDisposition($conn);
     } elseif ($method === 'POST') {
-        if (strpos($_SERVER['REQUEST_URI'], 'update') !== false) {
-            updateDisposition($conn);
-        } elseif (strpos($_SERVER['REQUEST_URI'], 'delete') !== false) {
+        // Use $_SERVER['QUERY_STRING']
+        $query = $_SERVER['QUERY_STRING'] ?? '';
+        
+        if (strpos($query, 'delete') !== false) {
             deleteDisposition($conn);
+        } elseif (strpos($query, 'update') !== false) {
+            updateDisposition($conn);
         } else {
             createDisposition($conn);
         }
@@ -19,22 +85,25 @@ try {
         sendError(405, 'Method not allowed');
     }
 } catch (Exception $e) {
-    sendError(500, $e->getMessage());
+    sendError(500, 'Server error: ' . $e->getMessage());
 } finally {
     $conn = null;
 }
 
+
+// ============ GET ALL DISPOSITIONEN ============
 function getAllDisposition($conn) {
     $query = "
         SELECT
-        d.disposition_id,
-        d.mitarbeiter_id,
-        d.auftrag_id,
-        d.geplanter_termin,
-        d.status,
-        d.notiz,
-        m.name as mitarbeiter_name,
-        a.auftragsname
+            d.disposition_id,
+            d.disponent_id,
+            d.mitarbeiter_id,
+            d.auftrag_id,
+            d.geplanter_termin,
+            d.status,
+            d.notiz,
+            m.name as mitarbeiter_name,
+            a.auftragsname
         FROM Disposition d
         LEFT JOIN Mitarbeiter m ON d.mitarbeiter_id = m.mitarbeiter_id
         LEFT JOIN Auftraege a ON d.auftrag_id = a.auftrag_id
@@ -55,48 +124,60 @@ function getAllDisposition($conn) {
 
     $query .= " ORDER BY d.geplanter_termin ASC";
 
-    $stmt = $conn->prepare($query);
-    if (!$stmt->execute()) {
-        sendError(500, 'Database query failed');
+    try {
+        $stmt = $conn->prepare($query);
+        $stmt->execute();
+        $dispositionen = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        echo json_encode($dispositionen);
+        exit();
+    } catch (PDOException $e) {
+        sendError(500, 'Database query failed: ' . $e->getMessage());
     }
-
-    $dispositionen = $stmt->fetchAll();
-    http_response_code(200);
-    echo json_encode($dispositionen);
 }
 
+
+// ============ CREATE DISPOSITION ============
 function createDisposition($conn) {
     $data = getJsonInput();
 
-    if (!isset($data['Mitarbeiter_id']) || !isset($data['Auftrag_id'])) {
-        sendError(400, 'Missing required fields: Mitarbeiter_id, Auftrag_id');
+    // Beide Felder sind NOT NULL!
+    if (!isset($data['Disponent_id']) || !isset($data['Mitarbeiter_id']) || !isset($data['Auftrag_id'])) {
+        sendError(400, 'Missing required fields: Disponent_id, Mitarbeiter_id, Auftrag_id');
     }
 
-    $stmt = $conn->prepare("
-        INSERT INTO Disposition (mitarbeiter_id, auftrag_id, geplanter_termin, status, notiz)
-        VALUES (:mitarbeiter_id, :auftrag_id, :geplanter_termin, :status, :notiz)
-    ");
-
+    $disponent_id = (int)$data['Disponent_id'];
     $mitarbeiter_id = (int)$data['Mitarbeiter_id'];
     $auftrag_id = (int)$data['Auftrag_id'];
-    $geplanter_termin = $data['Geplanter_Termin'];
+    $geplanter_termin = $data['Geplanter_Termin'] ?? date('Y-m-d H:i:s');
     $status = $data['Status'] ?? 'geplant';
     $notiz = $data['Notiz'] ?? '';
 
-    $stmt->bindParam(':mitarbeiter_id', $mitarbeiter_id, PDO::PARAM_INT);
-    $stmt->bindParam(':auftrag_id', $auftrag_id, PDO::PARAM_INT);
-    $stmt->bindParam(':geplanter_termin', $geplanter_termin);
-    $stmt->bindParam(':status', $status);
-    $stmt->bindParam(':notiz', $notiz);
+    $sql = "
+        INSERT INTO Disposition (disponent_id, mitarbeiter_id, auftrag_id, geplanter_termin, status, notiz)
+        VALUES (:disponent_id, :mitarbeiter_id, :auftrag_id, :geplanter_termin, :status, :notiz)
+    ";
 
-    if (!$stmt->execute()) {
-        sendError(500, 'Execute failed: ' . implode(', ', $stmt->errorInfo()));
+    try {
+        $stmt = $conn->prepare($sql);
+        $stmt->execute([
+            ':disponent_id' => $disponent_id,
+            ':mitarbeiter_id' => $mitarbeiter_id,
+            ':auftrag_id' => $auftrag_id,
+            ':geplanter_termin' => $geplanter_termin,
+            ':status' => $status,
+            ':notiz' => $notiz
+        ]);
+        
+        $insertId = $conn->lastInsertId('Disposition_disposition_id_seq');
+        sendCreated($insertId, 'Disposition created successfully');
+    } catch (PDOException $e) {
+        sendError(500, 'Insert failed: ' . $e->getMessage());
     }
-
-    $insertId = $conn->lastInsertId('Disposition_disposition_id_seq');
-    sendCreated($insertId, 'Disposition created successfully');
 }
 
+
+// ============ UPDATE DISPOSITION ============
 function updateDisposition($conn) {
     $data = getJsonInput();
 
@@ -104,37 +185,41 @@ function updateDisposition($conn) {
         sendError(400, 'Missing Disposition_id');
     }
 
-    $fields = [];
-    $bindings = [];
-    $allowed = ['Status', 'Geplanter_Termin', 'Notiz'];
+    $disposition_id = (int)$data['Disposition_id'];
+    $updates = [];
+    $bindings = [':id' => $disposition_id];
 
+    // Allowed fields to update
+    $allowed = ['Status', 'Geplanter_Termin', 'Notiz'];
     foreach ($allowed as $field) {
         if (isset($data[$field])) {
-            $fields[] = strtolower($field) . " = :" . strtolower($field);
+            $updates[] = strtolower($field) . ' = :' . strtolower($field);
             $bindings[':' . strtolower($field)] = $data[$field];
         }
     }
 
-    if (empty($fields)) {
+    if (empty($updates)) {
         sendError(400, 'No fields to update');
     }
 
-    $query = "UPDATE Disposition SET " . implode(", ", $fields) . " WHERE disposition_id = :id";
-    $stmt = $conn->prepare($query);
+    $sql = "UPDATE Disposition SET " . implode(', ', $updates) . " WHERE disposition_id = :id";
 
-    $bindings[':id'] = (int)$data['Disposition_id'];
-
-    if (!$stmt->execute($bindings)) {
-        sendError(500, 'Execute failed: ' . implode(', ', $stmt->errorInfo()));
+    try {
+        $stmt = $conn->prepare($sql);
+        $stmt->execute($bindings);
+        
+        if ($stmt->rowCount() === 0) {
+            sendError(404, 'Disposition not found');
+        }
+        
+        sendSuccess([], 'Disposition updated successfully');
+    } catch (PDOException $e) {
+        sendError(500, 'Update failed: ' . $e->getMessage());
     }
-
-    if ($stmt->rowCount() === 0) {
-        sendError(404, 'Disposition not found');
-    }
-
-    sendSuccess([], 'Disposition updated successfully');
 }
 
+
+// ============ DELETE DISPOSITION ============
 function deleteDisposition($conn) {
     $data = getJsonInput();
 
@@ -142,18 +227,21 @@ function deleteDisposition($conn) {
         sendError(400, 'Missing Disposition_id');
     }
 
-    $stmt = $conn->prepare("DELETE FROM Disposition WHERE disposition_id = :id");
-    $stmt->bindParam(':id', $data['Disposition_id'], PDO::PARAM_INT);
+    $disposition_id = (int)$data['Disposition_id'];
+    $sql = "DELETE FROM Disposition WHERE disposition_id = :id";
 
-    if (!$stmt->execute()) {
-        sendError(500, 'Execute failed: ' . implode(', ', $stmt->errorInfo()));
+    try {
+        $stmt = $conn->prepare($sql);
+        $stmt->execute([':id' => $disposition_id]);
+        
+        if ($stmt->rowCount() === 0) {
+            sendError(404, 'Disposition not found');
+        }
+        
+        sendSuccess([], 'Disposition deleted successfully');
+    } catch (PDOException $e) {
+        sendError(500, 'Delete failed: ' . $e->getMessage());
     }
-
-    if ($stmt->rowCount() === 0) {
-        sendError(404, 'Disposition not found');
-    }
-
-    sendSuccess([], 'Disposition deleted successfully');
 }
 
 ?>
