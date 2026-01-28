@@ -1,55 +1,185 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { API_ENDPOINTS, apiCall } from '../services/api.jsx';
 import './disposition.css';
 
+
 function Disposition() {
-  const [dispositionen, setDispositionen] = useState([
-    { id: 1, kunde: 'Mustermann GmbH', auftrag: 'Sanitär Installation', mitarbeiter: 'Max M.', termin: '25.01. 08:00', status: 'Geplant' },
-    { id: 2, kunde: 'Schmidt Reparatur', auftrag: 'Heizung Reparatur', mitarbeiter: 'Anna S.', termin: '25.01. 10:00', status: 'In Arbeit' },
-    { id: 3, kunde: 'Meistermann GmbH', auftrag: 'Badumbau', mitarbeiter: 'Peter W.', termin: '26.01. 09:00', status: 'Frei' }
-  ]);
-
-  const [showNewTermin, setShowNewTermin] = useState(false);
+  // ========== STATE ==========
+  const [alleDispositionen, setAlleDispositionen] = useState([]);
+  const [dispositionen, setDispositionen] = useState([]);
+  const [alleMitarbeiter, setAlleMitarbeiter] = useState([]);
+  const [alleAuftraege, setAlleAuftraege] = useState([]);
   const [neuerTermin, setNeuerTermin] = useState({
-    kunde: '',
-    auftrag: '',
-    mitarbeiter: '',
-    termin: '',
-    status: 'Geplant'
+    Mitarbeiter_id: '',
+    Auftrag_id: '',
+    Geplanter_Termin: '',
+    Status: 'geplant',
+    Notiz: ''
   });
+  const [showNewTermin, setShowNewTermin] = useState(false);
+  const [suchbegriff, setSuchbegriff] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const mitarbeiterListe = ['Max M.', 'Anna S.', 'Peter W.', 'Lisa K.', 'Tom B.'];
 
-  const handleInputChange = (e) => {
-    setNeuerTermin({ ...neuerTermin, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const terminData = {
-      id: Date.now(),
-      ...neuerTermin,
-      termin:
-        neuerTermin.termin ||
-        `${new Date().getDate() + 1}.${new Date().getMonth() + 1}. 09:00`
+  // ========== FETCH DATA ==========
+  useEffect(() => {
+    const loadAllData = async () => {
+      try {
+        setLoading(true);
+        const [dispositionen, mitarbeiter, auftraege] = await Promise.all([
+          apiCall(API_ENDPOINTS.disposition),
+          apiCall(API_ENDPOINTS.mitarbeiter),
+          apiCall(API_ENDPOINTS.auftraege)
+        ]);
+        
+        setAlleDispositionen(dispositionen);
+        setAlleMitarbeiter(mitarbeiter);
+        setAlleAuftraege(auftraege);
+        setError(null);
+      } catch (err) {
+        console.error('Failed to fetch data:', err);
+        setError('Daten konnten nicht geladen werden');
+      } finally {
+        setLoading(false);
+      }
     };
 
-    // neuer Termin oben einfügen
-    setDispositionen([terminData, ...dispositionen]);
+    loadAllData();
+  }, []);
+
+
+  // ========== FILTER & SEARCH ==========
+  useEffect(() => {
+    let gefilterte = alleDispositionen;
+
+    if (suchbegriff) {
+      gefilterte = gefilterte.filter(dispo =>
+        (dispo.mitarbeiter_name?.toLowerCase().includes(suchbegriff.toLowerCase())) ||
+        (dispo.auftragsname?.toLowerCase().includes(suchbegriff.toLowerCase()))
+      );
+    }
+
+    setDispositionen(gefilterte);
+  }, [suchbegriff, alleDispositionen]);
+
+
+  // ========== FORM HANDLERS ==========
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setNeuerTermin(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+
+  const resetForm = () => {
     setNeuerTermin({
-      kunde: '',
-      auftrag: '',
-      mitarbeiter: '',
-      termin: '',
-      status: 'Geplant'
+      Mitarbeiter_id: '',
+      Auftrag_id: '',
+      Geplanter_Termin: '',
+      Status: 'geplant',
+      Notiz: ''
     });
     setShowNewTermin(false);
   };
 
-  const handleDelete = (id) => {
-    setDispositionen(dispositionen.filter((d) => d.id !== id));
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!neuerTermin.Mitarbeiter_id || !neuerTermin.Auftrag_id || !neuerTermin.Geplanter_Termin) {
+      setError('Bitte füllen Sie alle erforderlichen Felder aus');
+      return;
+    }
+
+    try {
+      // WICHTIG: Disponent_id = Mitarbeiter_id (beide sind gleich)
+      const payload = {
+        Disponent_id: parseInt(neuerTermin.Mitarbeiter_id),
+        Mitarbeiter_id: parseInt(neuerTermin.Mitarbeiter_id),
+        Auftrag_id: parseInt(neuerTermin.Auftrag_id),
+        Geplanter_Termin: neuerTermin.Geplanter_Termin,
+        Status: neuerTermin.Status,
+        Notiz: neuerTermin.Notiz
+      };
+
+      await apiCall(API_ENDPOINTS.disposition, 'POST', payload);
+
+      // Daten neu laden
+      const updatedDispositionen = await apiCall(API_ENDPOINTS.disposition);
+      setAlleDispositionen(updatedDispositionen);
+
+      resetForm();
+      setError(null);
+    } catch (err) {
+      console.error('Failed to create disposition:', err);
+      setError(`Fehler beim Erstellen: ${err.message}`);
+    }
   };
 
+
+  const handleDelete = async (disposition_id) => {
+    if (!window.confirm('Diesen Termin wirklich löschen?')) return;
+
+    try {
+      await apiCall(API_ENDPOINTS.disposition + '?delete', 'POST', {
+        Disposition_id: disposition_id
+      });
+
+      const updatedDispositionen = await apiCall(API_ENDPOINTS.disposition);
+      setAlleDispositionen(updatedDispositionen);
+      setError(null);
+    } catch (err) {
+      console.error('Failed to delete disposition:', err);
+      setError(`Fehler beim Löschen: ${err.message}`);
+    }
+  };
+
+
+  const handleStatusChange = async (disposition_id, newStatus) => {
+    try {
+      await apiCall(API_ENDPOINTS.disposition + '?update', 'POST', {
+        Disposition_id: disposition_id,
+        Status: newStatus
+      });
+
+      const updatedDispositionen = await apiCall(API_ENDPOINTS.disposition);
+      setAlleDispositionen(updatedDispositionen);
+      setError(null);
+    } catch (err) {
+      console.error('Failed to update status:', err);
+      setError(`Fehler beim Aktualisieren: ${err.message}`);
+    }
+  };
+
+
+  // ========== HELPER FUNCTIONS ==========
+  const formatDateTime = (dateTimeString) => {
+    if (!dateTimeString) return 'N/A';
+    
+    try {
+      const date = new Date(dateTimeString);
+      return date.toLocaleDateString('de-CH', { 
+        month: '2-digit', 
+        day: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch (e) {
+      return 'Ungültiges Datum';
+    }
+  };
+
+  const getInitials = (name) => {
+    return (name?.charAt(0) || 'D').toUpperCase();
+  };
+
+
+  // ========== RENDER ==========
   return (
     <div className="disposition-fullscreen">
       {/* HEADER */}
@@ -60,71 +190,125 @@ function Disposition() {
           </Link>
           <h1>Disposition</h1>
           <div className="disposition-stats">
-            <span className="anzahl">{dispositionen.length}</span>
+            <span className="anzahl">{alleDispositionen.length}</span>
             <span className="label">Einträge</span>
           </div>
         </div>
 
         <div className="header-controls">
+          <div className="suchleiste">
+            <input
+              type="text"
+              placeholder="Dispositionen suchen..."
+              value={suchbegriff}
+              onChange={(e) => setSuchbegriff(e.target.value)}
+              aria-label="Suche Dispositionen"
+            />
+          </div>
           <button
             className="neuer-termin-btn"
             onClick={() => setShowNewTermin(!showNewTermin)}
+            aria-pressed={showNewTermin}
           >
             {showNewTermin ? 'Abbrechen' : '+ Neuer Termin'}
           </button>
         </div>
       </div>
 
-      {/* NEUER TERMIN FORM – schicke Box, nicht ganzes Overlay */}
+      {/* ERROR BANNER */}
+      {error && (
+        <div className="error-banner" role="alert">
+          <span>{error}</span>
+          <button 
+            onClick={() => setError(null)}
+            aria-label="Fehler schließen"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
+      {/* NEUER TERMIN FORM */}
       {showNewTermin && (
         <div className="neuer-termin-form-wrapper">
           <h3>Neuen Termin erstellen</h3>
           <form className="neuer-termin-form" onSubmit={handleSubmit}>
             <div className="form-grid">
-              <input
-                name="kunde"
-                placeholder="Kunde"
-                value={neuerTermin.kunde}
-                onChange={handleInputChange}
-                required
-              />
-              <input
-                name="auftrag"
-                placeholder="Auftrag"
-                value={neuerTermin.auftrag}
-                onChange={handleInputChange}
-                required
-              />
-              <select
-                name="mitarbeiter"
-                value={neuerTermin.mitarbeiter}
-                onChange={handleInputChange}
-                required
-              >
-                <option value="">Mitarbeiter wählen</option>
-                {mitarbeiterListe.map((m) => (
-                  <option key={m} value={m}>
-                    {m}
-                  </option>
-                ))}
-              </select>
-              <input
-                name="termin"
-                type="datetime-local"
-                value={neuerTermin.termin}
-                onChange={handleInputChange}
-              />
-              <select
-                name="status"
-                value={neuerTermin.status}
-                onChange={handleInputChange}
-              >
-                <option>Geplant</option>
-                <option>In Arbeit</option>
-                <option>Frei</option>
-                <option>Abgeschlossen</option>
-              </select>
+              <div className="form-group">
+                <label htmlFor="mitarbeiter-select">Mitarbeiter *</label>
+                <select
+                  id="mitarbeiter-select"
+                  name="Mitarbeiter_id"
+                  value={neuerTermin.Mitarbeiter_id}
+                  onChange={handleInputChange}
+                  required
+                >
+                  <option value="">-- Mitarbeiter wählen --</option>
+                  {alleMitarbeiter.map(m => (
+                    <option key={m.mitarbeiter_id} value={m.mitarbeiter_id}>
+                      {m.vorname} {m.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="auftrag-select">Auftrag *</label>
+                <select
+                  id="auftrag-select"
+                  name="Auftrag_id"
+                  value={neuerTermin.Auftrag_id}
+                  onChange={handleInputChange}
+                  required
+                >
+                  <option value="">-- Auftrag wählen --</option>
+                  {alleAuftraege.map(a => (
+                    <option key={a.auftrag_id} value={a.auftrag_id}>
+                      {a.auftragsname}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="termin-input">Geplanter Termin *</label>
+                <input
+                  id="termin-input"
+                  name="Geplanter_Termin"
+                  type="datetime-local"
+                  value={neuerTermin.Geplanter_Termin}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="status-select">Status</label>
+                <select
+                  id="status-select"
+                  name="Status"
+                  value={neuerTermin.Status}
+                  onChange={handleInputChange}
+                >
+                  <option value="geplant">Geplant</option>
+                  <option value="in_arbeit">In Arbeit</option>
+                  <option value="frei">Frei</option>
+                  <option value="abgeschlossen">Abgeschlossen</option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="notiz-input">Notiz</label>
+                <input
+                  id="notiz-input"
+                  name="Notiz"
+                  placeholder="Notiz (optional)"
+                  value={neuerTermin.Notiz}
+                  onChange={handleInputChange}
+                />
+              </div>
             </div>
+
             <div className="form-actions">
               <button
                 type="button"
@@ -141,48 +325,73 @@ function Disposition() {
         </div>
       )}
 
+      {/* DISPOSITIONEN TABELLE */}
       <div className="disposition-timeline">
-        <div className="timeline-header">
-          <span>Mitarbeiter</span>
-          <span>Auftrag</span>
-          <span>Termin</span>
-          <span>Status</span>
-          <span></span>
-        </div>
-
-        {dispositionen.map((dispo) => (
-          <div key={dispo.id} className="dispo-zeile">
-            <div className="dispo-mitarbeiter">
-              <div className="avatar">{dispo.mitarbeiter.charAt(0)}</div>
-              <span>{dispo.mitarbeiter}</span>
-            </div>
-            <div className="dispo-auftrag">
-              <h4>{dispo.kunde}</h4>
-              <p>{dispo.auftrag}</p>
-            </div>
-            <div className="dispo-termin">
-              <span className="zeit">{dispo.termin}</span>
-            </div>
-            <div className="dispo-status">
-              <span
-                className={`status-badge status-${dispo.status
-                  .toLowerCase()
-                  .replace(/ /g, '-')}`}
-              >
-                {dispo.status}
-              </span>
-            </div>
-            <button
-              className="delete-btn"
-              onClick={() => handleDelete(dispo.id)}
-            >
-              
-            </button>
+        {loading ? (
+          <div className="empty-state">
+            <h3>Dispositionen werden geladen...</h3>
           </div>
-        ))}
+        ) : dispositionen.length === 0 ? (
+          <div className="empty-state">
+            <h3>Keine Dispositionen gefunden</h3>
+            <p>Versuche die Suche anzupassen oder erstelle einen neuen Termin</p>
+          </div>
+        ) : (
+          <>
+            <div className="timeline-header">
+              <span>Mitarbeiter</span>
+              <span>Auftrag</span>
+              <span>Termin</span>
+              <span>Status</span>
+              <span></span>
+            </div>
+
+            {dispositionen.map(dispo => (
+              <div key={dispo.disposition_id} className="dispo-zeile">
+                <div className="dispo-mitarbeiter">
+                  <div className="avatar">{getInitials(dispo.mitarbeiter_name)}</div>
+                  <span>{dispo.mitarbeiter_name || 'Unbekannt'}</span>
+                </div>
+
+                <div className="dispo-auftrag">
+                  <p>{dispo.auftragsname || 'Unbekannt'}</p>
+                  {dispo.notiz && <small>{dispo.notiz}</small>}
+                </div>
+
+                <div className="dispo-termin">
+                  <span className="zeit">{formatDateTime(dispo.geplanter_termin)}</span>
+                </div>
+
+                <div className="dispo-status">
+                  <select
+                    className={`status-select status-${dispo.status}`}
+                    value={dispo.status}
+                    onChange={(e) => handleStatusChange(dispo.disposition_id, e.target.value)}
+                    aria-label={`Status für ${dispo.mitarbeiter_name}`}
+                  >
+                    <option value="geplant">Geplant</option>
+                    <option value="in_arbeit">In Arbeit</option>
+                    <option value="frei">Frei</option>
+                    <option value="abgeschlossen">Abgeschlossen</option>
+                  </select>
+                </div>
+
+                <button
+                  className="delete-btn"
+                  onClick={() => handleDelete(dispo.disposition_id)}
+                  title="Löschen"
+                  aria-label={`Löschen: ${dispo.mitarbeiter_name} - ${dispo.auftragsname}`}
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </>
+        )}
       </div>
     </div>
   );
 }
+
 
 export default Disposition;

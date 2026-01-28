@@ -1,77 +1,137 @@
 <?php
+// ============ CORS HEADERS (MUST BE FIRST!) ============
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, Authorization');
+header('Content-Type: application/json; charset=utf-8');
+
+
+// ============ PREFLIGHT REQUEST ============
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit();
+}
+
+
+// ============ DEPENDENCIES ============
 require_once 'config.php';
 
-$conn = getDBConnection();
-$method = $_SERVER['REQUEST_METHOD'];
 
+// ============ HELPER FUNCTIONS ============
+function getJsonInput() {
+    $input = file_get_contents('php://input');
+    if (empty($input)) {
+        sendError(400, 'Empty request body');
+    }
+    $data = json_decode($input, true);
+    if ($data === null && json_last_error() !== JSON_ERROR_NONE) {
+        sendError(400, 'Invalid JSON: ' . json_last_error_msg());
+    }
+    return $data;
+}
+
+
+function sendError($code, $message) {
+    http_response_code($code);
+    echo json_encode([
+        'success' => false,
+        'error' => $message
+    ]);
+    exit();
+}
+
+
+function sendSuccess($data = [], $message = 'Success') {
+    http_response_code(200);
+    echo json_encode([
+        'success' => true,
+        'message' => $message,
+        'data' => $data
+    ]);
+    exit();
+}
+
+
+function sendCreated($id, $message = 'Created') {
+    http_response_code(201);
+    echo json_encode([
+        'success' => true,
+        'message' => $message,
+        'data' => ['id' => $id]
+    ]);
+    exit();
+}
+
+
+// ============ MAIN ROUTER (FIXED!) ============
 try {
+    $pdo = getDBConnection();
+    $method = $_SERVER['REQUEST_METHOD'];
+    
     if ($method === 'GET') {
-        getAllVerrechnungen($conn);
+        getAllVerrechnungen($pdo);
     } elseif ($method === 'POST') {
-        if (strpos($_SERVER['REQUEST_URI'], 'update') !== false) {
-            updateVerrechnung($conn);
-        } elseif (strpos($_SERVER['REQUEST_URI'], 'delete') !== false) {
-            deleteVerrechnung($conn);
+        // FIXED: Use $_SERVER['QUERY_STRING'] instead of parse_url
+        $query = $_SERVER['QUERY_STRING'] ?? '';
+        
+        if (strpos($query, 'delete') !== false) {
+            deleteVerrechnung($pdo);
+        } elseif (strpos($query, 'update') !== false) {
+            updateVerrechnung($pdo);
         } else {
-            createVerrechnung($conn);
+            createVerrechnung($pdo);
         }
     } else {
         sendError(405, 'Method not allowed');
     }
 } catch (Exception $e) {
-    sendError(500, $e->getMessage());
+    sendError(500, 'Server error: ' . $e->getMessage());
 } finally {
-    $conn = null;
+    $pdo = null;
 }
 
-function getAllVerrechnungen($conn) {
+
+// ============ GET ALL VERRECHNUNGEN ============
+function getAllVerrechnungen($pdo) {
     $query = "
-        SELECT
-        v.verrechnungen_id,
-        v.auftrag_id,
-        v.rechnungsdatum,
-        v.betrag,
-        v.status,
-        v.bemerkung,
-        a.auftragsname,
-        k.firma,
-        k.name,
-        k.vorname
-        FROM Verrechnungen v
-        LEFT JOIN Auftraege a ON v.auftrag_id = a.auftrag_id
-        LEFT JOIN Kunde k ON a.kunden_id = k.kunden_id
-        WHERE 1=1
+        SELECT 
+            v.verrechnung_id,
+            v.auftrag_id,
+            v.rechnungsdatum,
+            v.betrag,
+            v.status,
+            v.bemerkung,
+            a.auftragsname,
+            k.firma,
+            k.name,
+            k.vorname
+        FROM verrechnungen v
+        LEFT JOIN auftraege a ON v.auftrag_id = a.auftrag_id
+        LEFT JOIN kunde k ON a.kunden_id = k.kunden_id
+        ORDER BY v.rechnungsdatum DESC
     ";
 
-    // Optional: Filter by Status
-    if (isset($_GET['status'])) {
-        $status = $_GET['status'];
-        $query .= " AND v.status = '" . $status . "'";
+    try {
+        $stmt = $pdo->prepare($query);
+        $stmt->execute();
+        $verrechnungen = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        echo json_encode($verrechnungen);
+        exit();
+    } catch (PDOException $e) {
+        sendError(500, 'Query failed: ' . $e->getMessage());
     }
-
-    $query .= " ORDER BY v.rechnungsdatum DESC";
-
-    $stmt = $conn->prepare($query);
-    if (!$stmt->execute()) {
-        sendError(500, 'Database query failed');
-    }
-
-    $verrechnungen = $stmt->fetchAll();
-    http_response_code(200);
-    echo json_encode($verrechnungen);
 }
 
-function createVerrechnung($conn) {
+
+// ============ CREATE VERRECHNUNG ============
+function createVerrechnung($pdo) {
     $data = getJsonInput();
 
-    if (!isset($data['Auftrag_id']) || !isset($data['Betrag'])) {
+    // Validation
+    if (empty($data['Auftrag_id']) || empty($data['Betrag'])) {
         sendError(400, 'Missing required fields: Auftrag_id, Betrag');
     }
-
-    $stmt = $conn->prepare("
-        INSERT INTO Verrechnungen (auftrag_id, rechnungsdatum, betrag, status, bemerkung)
-        VALUES (:auftrag_id, :rechnungsdatum, :betrag, :status, :bemerkung)
-    ");
 
     $auftrag_id = (int)$data['Auftrag_id'];
     $rechnungsdatum = $data['Rechnungsdatum'] ?? date('Y-m-d');
@@ -79,77 +139,92 @@ function createVerrechnung($conn) {
     $status = $data['Status'] ?? 'offen';
     $bemerkung = $data['Bemerkung'] ?? '';
 
-    $stmt->bindParam(':auftrag_id', $auftrag_id, PDO::PARAM_INT);
-    $stmt->bindParam(':rechnungsdatum', $rechnungsdatum);
-    $stmt->bindParam(':betrag', $betrag);
-    $stmt->bindParam(':status', $status);
-    $stmt->bindParam(':bemerkung', $bemerkung);
+    $sql = "INSERT INTO verrechnungen 
+            (auftrag_id, rechnungsdatum, betrag, status, bemerkung) 
+            VALUES (:auftrag_id, :rechnungsdatum, :betag, :status, :bemerkung)";
 
-    if (!$stmt->execute()) {
-        sendError(500, 'Execute failed: ' . implode(', ', $stmt->errorInfo()));
+    try {
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([
+            ':auftrag_id' => $auftrag_id,
+            ':rechnungsdatum' => $rechnungsdatum,
+            ':betag' => $betrag,
+            ':status' => $status,
+            ':bemerkung' => $bemerkung
+        ]);
+        
+        sendCreated($pdo->lastInsertId(), 'Verrechnung created successfully');
+    } catch (PDOException $e) {
+        sendError(500, 'Insert failed: ' . $e->getMessage());
     }
-
-    $insertId = $conn->lastInsertId('Verrechnungen_verrechnungen_id_seq');
-    sendCreated($insertId, 'Verrechnung created successfully');
 }
 
-function updateVerrechnung($conn) {
+
+// ============ UPDATE VERRECHNUNG ============
+function updateVerrechnung($pdo) {
     $data = getJsonInput();
 
-    if (!isset($data['Verrechnungen_id'])) {
-        sendError(400, 'Missing Verrechnungen_id');
+    if (empty($data['Verrechnung_id'])) {
+        sendError(400, 'Missing Verrechnung_id');
     }
 
-    $fields = [];
-    $bindings = [];
-    $allowed = ['Status', 'Betrag', 'Bemerkung'];
+    $verrechnung_id = (int)$data['Verrechnung_id'];
+    $updates = [];
+    $bindings = [':id' => $verrechnung_id];
 
+    // Allowed fields to update
+    $allowed = ['Status', 'Betrag', 'Bemerkung'];
     foreach ($allowed as $field) {
         if (isset($data[$field])) {
-            $fields[] = strtolower($field) . " = :" . strtolower($field);
+            $updates[] = strtolower($field) . ' = :' . strtolower($field);
             $bindings[':' . strtolower($field)] = $data[$field];
         }
     }
 
-    if (empty($fields)) {
+    if (empty($updates)) {
         sendError(400, 'No fields to update');
     }
 
-    $query = "UPDATE Verrechnungen SET " . implode(", ", $fields) . " WHERE verrechnungen_id = :id";
-    $stmt = $conn->prepare($query);
+    $sql = "UPDATE verrechnungen SET " . implode(', ', $updates) . " WHERE verrechnung_id = :id";
 
-    $bindings[':id'] = (int)$data['Verrechnungen_id'];
-
-    if (!$stmt->execute($bindings)) {
-        sendError(500, 'Execute failed: ' . implode(', ', $stmt->errorInfo()));
+    try {
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($bindings);
+        
+        if ($stmt->rowCount() === 0) {
+            sendError(404, 'Verrechnung not found');
+        }
+        
+        sendSuccess([], 'Verrechnung updated successfully');
+    } catch (PDOException $e) {
+        sendError(500, 'Update failed: ' . $e->getMessage());
     }
-
-    if ($stmt->rowCount() === 0) {
-        sendError(404, 'Verrechnung not found');
-    }
-
-    sendSuccess([], 'Verrechnung updated successfully');
 }
 
-function deleteVerrechnung($conn) {
+
+// ============ DELETE VERRECHNUNG ============
+function deleteVerrechnung($pdo) {
     $data = getJsonInput();
 
-    if (!isset($data['Verrechnungen_id'])) {
-        sendError(400, 'Missing Verrechnungen_id');
+    if (empty($data['Verrechnung_id'])) {
+        sendError(400, 'Missing Verrechnung_id');
     }
 
-    $stmt = $conn->prepare("DELETE FROM Verrechnungen WHERE verrechnungen_id = :id");
-    $stmt->bindParam(':id', $data['Verrechnungen_id'], PDO::PARAM_INT);
+    $verrechnung_id = (int)$data['Verrechnung_id'];
+    $sql = "DELETE FROM verrechnungen WHERE verrechnung_id = :id";
 
-    if (!$stmt->execute()) {
-        sendError(500, 'Execute failed: ' . implode(', ', $stmt->errorInfo()));
+    try {
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([':id' => $verrechnung_id]);
+        
+        if ($stmt->rowCount() === 0) {
+            sendError(404, 'Verrechnung not found');
+        }
+        
+        sendSuccess([], 'Verrechnung deleted successfully');
+    } catch (PDOException $e) {
+        sendError(500, 'Delete failed: ' . $e->getMessage());
     }
-
-    if ($stmt->rowCount() === 0) {
-        sendError(404, 'Verrechnung not found');
-    }
-
-    sendSuccess([], 'Verrechnung deleted successfully');
 }
 
 ?>

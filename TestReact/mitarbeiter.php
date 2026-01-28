@@ -1,140 +1,120 @@
 <?php
+// mitarbeiter.php - Mit require_once config.php
+
 require_once 'config.php';
 
-$conn = getDBConnection();
-$method = $_SERVER['REQUEST_METHOD'];
-
-try {
-    if ($method === 'GET') {
-        getAllMitarbeiter($conn);
-    } elseif ($method === 'POST') {
-        if (strpos($_SERVER['REQUEST_URI'], 'update') !== false) {
-            updateMitarbeiter($conn);
-        } elseif (strpos($_SERVER['REQUEST_URI'], 'delete') !== false) {
-            deleteMitarbeiter($conn);
-        } else {
-            createMitarbeiter($conn);
-        }
-    } else {
-        sendError(405, 'Method not allowed');
-    }
-} catch (Exception $e) {
-    sendError(500, $e->getMessage());
-} finally {
-    $conn = null;
-}
-
-function getAllMitarbeiter($conn) {
-    $query = "
-        SELECT 
-        mitarbeiter_id, vorname, name, rolle, status, telefonnummer, email
-        FROM Mitarbeiter
-        ORDER BY name ASC
-    ";
-
-    $stmt = $conn->prepare($query);
-    if (!$stmt->execute()) {
-        sendError(500, 'Database query failed');
-    }
-
-    $mitarbeiter = $stmt->fetchAll();
+// ========== PREFLIGHT REQUEST HANDLING ==========
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
-    echo json_encode($mitarbeiter);
+    exit();
 }
 
-function createMitarbeiter($conn) {
-    $data = getJsonInput();
-
-    if (!isset($data['Name']) || !isset($data['Rolle'])) {
-        sendError(400, 'Missing required fields: Name, Rolle');
+// ========== GET - Alle Mitarbeiter ==========
+if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+    try {
+        $query = "SELECT mitarbeiter_id, vorname, name, rolle, status, telefonnummer, email FROM Mitarbeiter ORDER BY name ASC";
+        $stmt = $conn->prepare($query);
+        $stmt->execute();
+        $mitarbeiter = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        http_response_code(200);
+        echo json_encode($mitarbeiter);
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode(['error' => $e->getMessage()]);
     }
-
-    $stmt = $conn->prepare("
-        INSERT INTO Mitarbeiter (vorname, name, rolle, status, telefonnummer, email)
-        VALUES (:vorname, :name, :rolle, :status, :telefonnummer, :email)
-    ");
-
-    $vorname = $data['Vorname'] ?? '';
-    $name = $data['Name'];
-    $rolle = $data['Rolle'];
-    $status = $data['Status'] ?? 'aktiv';
-    $telefonnummer = $data['Telefonnummer'] ?? '';
-    $email = $data['Email'] ?? '';
-
-    $stmt->bindParam(':vorname', $vorname);
-    $stmt->bindParam(':name', $name);
-    $stmt->bindParam(':rolle', $rolle);
-    $stmt->bindParam(':status', $status);
-    $stmt->bindParam(':telefonnummer', $telefonnummer);
-    $stmt->bindParam(':email', $email);
-
-    if (!$stmt->execute()) {
-        sendError(500, 'Execute failed: ' . implode(', ', $stmt->errorInfo()));
-    }
-
-    // Get the last insert id for PostgreSQL
-    $insertId = $conn->lastInsertId('Mitarbeiter_mitarbeiter_id_seq');
-    sendCreated($insertId, 'Mitarbeiter created successfully');
+    
+    exit();
 }
 
-function updateMitarbeiter($conn) {
-    $data = getJsonInput();
-
-    if (!isset($data['Mitarbeiter_id'])) {
-        sendError(400, 'Missing Mitarbeiter_id');
-    }
-
-    // Build dynamic fields
-    $fields = [];
-    $bindings = [];
-    $allowed = ['Vorname', 'Name', 'Rolle', 'Status', 'Telefonnummer', 'Email'];
-
-    foreach ($allowed as $field) {
-        if (isset($data[$field])) {
-            $fields[] = strtolower($field) . " = :" . strtolower($field);
-            $bindings[':' . strtolower($field)] = $data[$field];
+// ========== POST - Neuer Mitarbeiter ODER Update/Delete ==========
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $data = json_decode(file_get_contents('php://input'), true);
+    
+    // ========== UPDATE STATUS ==========
+    if (isset($_GET['update'])) {
+        try {
+            $mitarbeiter_id = $data['Mitarbeiter_id'] ?? null;
+            $status = $data['Status'] ?? null;
+            
+            if (!$mitarbeiter_id || !$status) {
+                throw new Exception('Mitarbeiter_id und Status erforderlich');
+            }
+            
+            $query = "UPDATE Mitarbeiter SET status = :status WHERE mitarbeiter_id = :id";
+            $stmt = $conn->prepare($query);
+            $stmt->execute([':status' => $status, ':id' => $mitarbeiter_id]);
+            
+            http_response_code(200);
+            echo json_encode(['success' => true, 'message' => 'Status aktualisiert']);
+        } catch (Exception $e) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
         }
+        exit();
     }
-
-    if (empty($fields)) {
-        sendError(400, 'No fields to update');
+    
+    // ========== DELETE ==========
+    if (isset($_GET['delete'])) {
+        try {
+            $mitarbeiter_id = $data['Mitarbeiter_id'] ?? null;
+            if (!$mitarbeiter_id) {
+                throw new Exception('Mitarbeiter_id erforderlich');
+            }
+            
+            $query = "DELETE FROM Mitarbeiter WHERE mitarbeiter_id = :id";
+            $stmt = $conn->prepare($query);
+            $stmt->execute([':id' => $mitarbeiter_id]);
+            
+            http_response_code(200);
+            echo json_encode(['success' => true, 'message' => 'Mitarbeiter gelöscht']);
+        } catch (Exception $e) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+        }
+        exit();
     }
-
-    $query = "UPDATE Mitarbeiter SET " . implode(", ", $fields) . " WHERE mitarbeiter_id = :id";
-    $stmt = $conn->prepare($query);
-
-    $bindings[':id'] = (int)$data['Mitarbeiter_id'];
-
-    if (!$stmt->execute($bindings)) {
-        sendError(500, 'Execute failed: ' . implode(', ', $stmt->errorInfo()));
+    
+    // ========== CREATE - Neuer Mitarbeiter ==========
+    try {
+        $vorname = $data['Vorname'] ?? '';
+        $name = $data['Name'] ?? null;
+        $rolle = $data['Rolle'] ?? 'MA';
+        $status = $data['Status'] ?? 'Aktiv';
+        $telefonnummer = $data['Telefonnummer'] ?? '';
+        $email = $data['Email'] ?? '';
+        
+        if (!$name) {
+            throw new Exception('Name erforderlich');
+        }
+        
+        $query = "INSERT INTO Mitarbeiter (vorname, name, rolle, status, telefonnummer, email) 
+                  VALUES (:vorname, :name, :rolle, :status, :telefonnummer, :email)";
+        $stmt = $conn->prepare($query);
+        $stmt->execute([
+            ':vorname' => $vorname,
+            ':name' => $name,
+            ':rolle' => $rolle,
+            ':status' => $status,
+            ':telefonnummer' => $telefonnummer,
+            ':email' => $email
+        ]);
+        
+        $mitarbeiter_id = $conn->lastInsertId();
+        
+        http_response_code(201);
+        echo json_encode([
+            'success' => true,
+            'message' => 'Mitarbeiter erstellt',
+            'id' => $mitarbeiter_id
+        ]);
+    } catch (Exception $e) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'error' => $e->getMessage()]);
     }
-
-    if ($stmt->rowCount() === 0) {
-        sendError(404, 'Mitarbeiter not found');
-    }
-
-    sendSuccess([], 'Mitarbeiter updated successfully');
+    exit();
 }
 
-function deleteMitarbeiter($conn) {
-    $data = getJsonInput();
-
-    if (!isset($data['Mitarbeiter_id'])) {
-        sendError(400, 'Missing Mitarbeiter_id');
-    }
-
-    $stmt = $conn->prepare("DELETE FROM Mitarbeiter WHERE mitarbeiter_id = :id");
-    $stmt->bindParam(':id', $data['Mitarbeiter_id'], PDO::PARAM_INT);
-
-    if (!$stmt->execute()) {
-        sendError(500, 'Execute failed: ' . implode(', ', $stmt->errorInfo()));
-    }
-
-    if ($stmt->rowCount() === 0) {
-        sendError(404, 'Mitarbeiter not found');
-    }
-
-    sendSuccess([], 'Mitarbeiter deleted successfully');
-}
-
+http_response_code(405);
+echo json_encode(['error' => 'Methode nicht erlaubt']);
 ?>
