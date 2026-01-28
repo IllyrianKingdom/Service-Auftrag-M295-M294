@@ -376,3 +376,307 @@
     grid-template-columns: repeat(2, minmax(0,1fr));
   }
 }
+/* BERICHTE.CSS - ERWEITERUNG FÜR NEUEN BERICHT BUTTON + FORMULAR */
+/* (Dein bestehendes CSS bleibt unverändert!) */
+
+/* NEUER BERICHT BUTTON (passt zu deinem violetten Design) */
+.neuer-bericht-btn {
+  background: linear-gradient(135deg, #6366f1, #a855f7);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(79,70,229,0.5);
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  margin-left: 12px;
+}
+
+.neuer-bericht-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 30px rgba(79,70,229,0.7);
+}
+
+/* FORMULAR (angepasst an dein dunkles Design) */
+.neuer-bericht-form-wrapper {
+  padding: 24px 40px;
+  background: transparent;
+  flex-shrink: 0;
+  border-bottom: 1px solid rgba(148,163,184,0.3);
+}
+
+.neuer-bericht-form-wrapper h3 {
+  color: #e5e7eb;
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 16px 0;
+}
+
+.neuer-bericht-form {
+  background: rgba(15,23,42,0.96);
+  backdrop-filter: blur(18px);
+  border: 1px solid rgba(148,163,184,0.4);
+  border-radius: 18px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.neuer-bericht-form .form-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.neuer-bericht-form textarea {
+  grid-column: 1 / -1;
+  background: rgba(15,23,42,0.9);
+  border: 1px solid rgba(148,163,184,0.6);
+  border-radius: 12px;
+  padding: 12px 14px;
+  color: #e5e7eb;
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 80px;
+}
+
+.neuer-bericht-form input,
+.neuer-bericht-form select {
+  background: rgba(15,23,42,0.9);
+  border: 1px solid rgba(148,163,184,0.6);
+  border-radius: 12px;
+  padding: 12px 14px;
+  color: #e5e7eb;
+  font-size: 14px;
+  font-family: inherit;
+}
+
+.neuer-bericht-form input::placeholder {
+  color: rgba(148,163,184,0.8);
+}
+
+.neuer-bericht-form input:focus,
+.neuer-bericht-form select:focus,
+.neuer-bericht-form textarea:focus {
+  outline: none;
+  border-color: rgba(129,140,248,1);
+  box-shadow: 0 0 0 3px rgba(99,102,241,0.2);
+}
+
+.neuer-bericht-form .form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(148,163,184,0.3);
+}
+
+.neuer-bericht-form .cancel-btn {
+  background: transparent;
+  color: #e5e7eb;
+  border: 1px solid rgba(148,163,184,0.6);
+  border-radius: 12px;
+  padding: 10px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.neuer-bericht-form .cancel-btn:hover {
+  background: rgba(15,23,42,0.9);
+  border-color: rgba(148,163,184,1);
+}
+
+.neuer-bericht-form .speichern-btn {
+  background: linear-gradient(135deg, #6366f1, #a855f7);
+  color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(79,70,229,0.5);
+  transition: all 0.2s ease;
+}
+
+.neuer-bericht-form .speichern-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 30px rgba(79,70,229,0.7);
+}
+
+/* DELETE BUTTON IN KARTEN (kleiner roter X) */
+.karte-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.delete-btn-klein {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(239,68,68,0.9);
+  border: none;
+  cursor: pointer;
+  position: relative;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.delete-btn-klein:hover {
+  background: #ef4444;
+  transform: scale(1.1);
+}
+
+.delete-btn-klein::before,
+.delete-btn-klein::after {
+  content: '';
+  position: absolute;
+  width: 12px;
+  height: 2px;
+  background: #ffffff;
+  border-radius: 1px;
+  top: 50%;
+  left: 50%;
+}
+
+.delete-btn-klein::before {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.delete-btn-klein::after {
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+/* Responsive Formular */
+@media (max-width: 768px) {
+  .neuer-bericht-form .form-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .neuer-bericht-form-wrapper {
+    padding: 20px;
+  }
+}
+/* SELECTED BERICHT STYLES */
+.bericht-karte.selected {
+  border-color: rgba(129,140,248,1);
+  box-shadow: 0 20px 45px rgba(99,102,241,0.4);
+  background: radial-gradient(circle at top left, rgba(99,102,241,0.4), rgba(15,23,42,0.96));
+}
+
+.selected-bericht-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+  gap: 12px;
+}
+
+.selected-bericht-header h2 {
+  font-size: 24px;
+  margin: 0;
+  color: #e5e7eb;
+}
+
+.typ-badge.large {
+  font-size: 13px;
+  padding: 6px 12px;
+}
+
+.bericht-detail-content {
+  background: rgba(15,23,42,0.7);
+  border-radius: 14px;
+  padding: 18px;
+  margin-bottom: 20px;
+  border: 1px solid rgba(148,163,184,0.3);
+}
+
+.detail-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+  align-items: flex-start;
+}
+
+.detail-label {
+  font-size: 13px;
+  color: rgba(209,213,219,0.7);
+  font-weight: 500;
+  min-width: 80px;
+}
+
+.detail-value {
+  font-size: 14px;
+  color: #e5e7eb;
+  flex: 1;
+}
+
+.detail-value.full {
+  font-size: 13px;
+}
+
+.export-section h4 {
+  margin: 0 0 12px;
+  font-size: 15px;
+  color: #e5e7eb;
+}
+
+.export-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.export-btn.secondary {
+  background: rgba(15,23,42,0.9);
+  box-shadow: 0 4px 12px rgba(15,23,42,0.5);
+}
+
+.export-btn.secondary:hover {
+  background: rgba(30,64,175,0.9);
+  box-shadow: 0 8px 20px rgba(30,64,175,0.5);
+}
+
+/* Klick-Stop für Delete Button */
+.delete-btn-klein {
+  z-index: 10;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .selected-bericht-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .export-buttons {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  
+  
+}
+.neuer-bericht-form .auftrag-auswahl {
+  grid-column: span 2;
+  background: rgba(15,23,42,0.9);
+  border: 2px solid rgba(59,130,246,0.4);
+}
+
+.neuer-bericht-form .form-grid {
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.neuer-bericht-form .form-grid:has(.auftrag-auswahl) {
+  grid-template-columns: 1fr 2fr 1fr;
+}
+
