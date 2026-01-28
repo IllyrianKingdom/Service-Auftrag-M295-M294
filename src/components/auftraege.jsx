@@ -71,11 +71,11 @@ const getKundenName = (kunden_id, alleKunden) => {
   return kunde ? (kunde.firma || `${kunde.vorname} ${kunde.name}`) : 'Unbekannt';
 };
 
-const formatDate = (dateString) => {
-  if (!dateString) return '';
-  const date = new Date(dateString);
-  return date.toLocaleDateString('de-CH', { month: '2-digit', day: '2-digit' });
-};
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('de-CH', { month: '2-digit', day: '2-digit', year: '2-digit' });
+  };
 
 const createEmptyAuftrag = () => ({
   Kunden_id: '',
