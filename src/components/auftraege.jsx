@@ -71,11 +71,20 @@ const getKundenName = (kunden_id, alleKunden) => {
   return kunde ? (kunde.firma || `${kunde.vorname} ${kunde.name}`) : 'Unbekannt';
 };
 
-  const formatDate = (dateString) => {
-    if (!dateString) return '';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('de-CH', { month: '2-digit', day: '2-digit', year: '4-digit' });
-  };
+ const formatDate = (dateString) => {
+  if (!dateString) return '';
+  try {
+    const date = new Date(dateString + 'T00:00:00Z');  // Z = UTC, verhindert Zeitzonen-Probleme
+    if (isNaN(date.getTime())) return dateString;      // Fallback
+    return date.toLocaleDateString('de-CH', { 
+      month: '2-digit', 
+      day: '2-digit', 
+      year: 'numeric' 
+    });
+  } catch {
+    return dateString;
+  }
+};
 
 const createEmptyAuftrag = () => ({
   Kunden_id: '',
@@ -169,10 +178,10 @@ const AuftraegeFormComponent = ({ neuerAuftrag, setNeuerAuftrag, alleKunden, onS
           <option value="verrechnet">Verrechnet</option>
         </select>
         <input
-          name="Angefangen_am"
-          type="date"
-          value={neuerAuftrag.Angefangen_am}
-          onChange={(e) => setNeuerAuftrag(prev => ({ ...prev, Angefangen_am: e.target.value }))}
+      name="Angefangen_am"
+      type="date"
+      value={neuerAuftrag.Angefangen_am}
+      onChange={(e) => setNeuerAuftrag(prev => ({ ...prev, Angefangen_am: e.target.value }))}
         />
       </div>
       <button type="submit">Auftrag erstellen</button>
@@ -292,18 +301,21 @@ function Auftraege() {
   };
 
   const handleStatusChange = async (auftrag_id, newStatus) => {
-    try {
-      await apiCall(API_ENDPOINTS.auftraege + '?update', 'POST', {
-        Auftrag_id: auftrag_id,
-        Status: newStatus
-      });
-      await fetchAuftraege();
-      setError(null);
-    } catch (err) {
-      console.error('Failed to update status:', err);
-      setError(`Fehler: ${err.message}`);
-    }
-  };
+  try {
+    const payload = {
+      Auftrag_id: auftrag_id,
+      Status: newStatus,
+      Erledigt_am: (newStatus === 'verrechnet') ? new Date().toISOString().split('T')[0] : null
+    };
+    
+    await apiCall(API_ENDPOINTS.auftraege + '?update', 'POST', payload);
+    await fetchAuftraege();
+    setError(null);
+  } catch (err) {
+    console.error('Failed to update status:', err);
+    setError(`Fehler: ${err.message}`);
+  }
+};
 
   return (
     <div className="auftraege-fullscreen">

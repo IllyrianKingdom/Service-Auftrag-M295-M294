@@ -107,21 +107,13 @@ function getAllAuftraege($pdo) {
         SELECT
             a.auftrag_id,
             a.auftragsname,
-            a.angefangen_am,
-            a.erledigt_am,
+            a.angefangen_am, 
+            a.erledigt_am,          
             a.status,
             a.erfasst_am,
             a.erfasst_von,
-            a.kunden_id,
-            k.vorname,
-            k.name,
-            k.firma,
-            k.addresse,
-            k.plz,
-            k.ort,
-            k.telefonnummer
+            a.kunden_id
         FROM auftraege a
-        LEFT JOIN kunde k ON a.kunden_id = k.kunden_id
         ORDER BY a.angefangen_am DESC
     ";
     
@@ -136,6 +128,7 @@ function getAllAuftraege($pdo) {
         sendError(500, 'Query failed: ' . $e->getMessage());
     }
 }
+
 
 // ============ CREATE AUFTRAG ============
 function createAuftrag($conn) {
