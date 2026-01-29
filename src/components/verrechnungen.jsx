@@ -287,7 +287,6 @@ function Verrechnungen() {
         </div>
       )}
 
-      {/* VERRECHNUNGEN TABELLE */}
       <div className="verrechnungen-timeline">
         {loading ? (
           <div className="empty-state">
@@ -300,14 +299,24 @@ function Verrechnungen() {
           </div>
         ) : (
           <>
-            <div className="timeline-header">
+            <div className='timeline-header'>
+            <div className="kunde-header">
               <span>Kunde</span>
-              <span>Auftrag</span>
-              <span>Betrag</span>
-              <span>Status</span>
-              <span>Rechnungsdatum</span>
-              <span></span>
             </div>
+            <div className="auftrag-header">
+              <span>Auftrag</span>
+            </div>
+              <div className="status-header">
+              <span>Status</span>
+               </div>
+              <div className="betrag-header">
+              <span>Betrag</span>
+              </div>
+              <div className="datum-header">
+              <span>Rechnungsdatum</span>
+              </div>
+              <span></span>
+              </div>
 
             {verrechnungen.map(v => {
               const auftragInfo = getAuftragInfo(v.auftrag_id);
@@ -321,9 +330,6 @@ function Verrechnungen() {
                     <h4>{auftragInfo.auftragsname}</h4>
                     {v.bemerkung && <small>{v.bemerkung}</small>}
                   </div>
-                  <div className="verr-betrag">
-                    <strong>{formatCurrency(v.betrag)}</strong>
-                  </div>
                   <div className="verr-status">
                     <select
                       className={`status-select status-${v.status}`}
@@ -334,6 +340,9 @@ function Verrechnungen() {
                       <option value="bezahlt">Bezahlt</option>
                       <option value="überfällig">Überfällig</option>
                     </select>
+                  </div>
+                  <div className="verr-betrag">
+                    <strong>{formatCurrency(v.betrag)}</strong>
                   </div>
                   <div className="verr-datum">
                     {formatDate(v.rechnungsdatum)}
