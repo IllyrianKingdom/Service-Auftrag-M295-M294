@@ -65,7 +65,7 @@ const useFilteredAuftraege = (alleAuftraege, suchbegriff, filterStatus) => {
   return auftraege;
 };
 
-// ========== HELPER FUNCTIONS ==========
+
 const getKundenName = (kunden_id, alleKunden) => {
   const kunde = alleKunden.find(k => k.kunden_id === kunden_id);
   return kunde ? (kunde.firma || `${kunde.vorname} ${kunde.name}`) : 'Unbekannt';
