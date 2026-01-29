@@ -65,7 +65,7 @@ const useFilteredAuftraege = (alleAuftraege, suchbegriff, filterStatus) => {
   return auftraege;
 };
 
-// ========== HELPER FUNCTIONS ==========
+
 const getKundenName = (kunden_id, alleKunden) => {
   const kunde = alleKunden.find(k => k.kunden_id === kunden_id);
   return kunde ? (kunde.firma || `${kunde.vorname} ${kunde.name}`) : 'Unbekannt';
@@ -74,7 +74,7 @@ const getKundenName = (kunden_id, alleKunden) => {
   const formatDate = (dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
-    return date.toLocaleDateString('de-CH', { month: '2-digit', day: '2-digit', year: '4-digit' });
+    return date.toLocaleDateString('de-CH', { month: '2-digit', day: '2-digit', year: '2-digit' });
   };
 
 const createEmptyAuftrag = () => ({

@@ -7,9 +7,7 @@ export default function ProtectedRoute({ children }) {
   const hasContextUser = !!user;
   const hasLocalStorageUser = !!localStorage.getItem("sa_user");
   const hasAuthToken = !!localStorage.getItem("authToken");
-  const hasCookie = document.cookie.split(';').some(cookie => 
-    cookie.trim().startsWith('authToken=') || cookie.trim().startsWith('sessionToken=')
-  );
+  
 
   const isAuthenticated = hasAuthToken && (hasContextUser || hasLocalStorageUser);
 
