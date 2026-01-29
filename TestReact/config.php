@@ -1,14 +1,18 @@
 <?php
 // config.php - Supabase PostgreSQL Configuration
 
-// ========== SUPABASE POSTGRESQL DATABASE ==========
-define('DB_HOST', 'aws-1-eu-central-1.pooler.supabase.com');
-define('DB_USER', 'postgres.kemkyxpxvpxikuusrubo');
-define('DB_PASS', 'VedranAlessioArnis');
-define('DB_NAME', 'postgres');
-define('DB_PORT', 5432);
-
 // ========== CORS HEADERS & SECURITY ==========
+// 🚨 WICHTIG: OPTIONS-Request ZUERST handhaben!
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    header('Access-Control-Allow-Origin: *');
+    header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+    header('Access-Control-Allow-Headers: Content-Type, Authorization');
+    header('Access-Control-Max-Age: 86400');
+    http_response_code(200);
+    exit;  // ← WICHTIG: Hier stoppen!
+}
+
+// Normale Requests
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization');
@@ -16,6 +20,13 @@ header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-cache, no-store, must-revalidate');
 header('Pragma: no-cache');
 header('Expires: 0');
+
+// ========== SUPABASE POSTGRESQL DATABASE ==========
+define('DB_HOST', 'aws-1-eu-central-1.pooler.supabase.com');
+define('DB_USER', 'postgres.kemkyxpxvpxikuusrubo');
+define('DB_PASS', 'VedranAlessioArnis');
+define('DB_NAME', 'postgres');
+define('DB_PORT', 5432);
 
 // ========== DATABASE CONNECTION (PDO with PostgreSQL) ==========
 function getDBConnection() {

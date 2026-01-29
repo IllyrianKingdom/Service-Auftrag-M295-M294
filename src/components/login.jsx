@@ -1,7 +1,8 @@
 import './login.css'
-import {useNavigate} from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { useAuth } from '../auth/AuthProvider';
+import { API_ENDPOINTS, apiCall } from '../services/api';
 
 function Login() {
     const navigate = useNavigate();
@@ -11,104 +12,118 @@ function Login() {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     
-    const users = [
-        { id: 1, email: 'benutzer1@example.com', password: 'password123', name: 'Benutzer 1' },
-        { id: 2, email: 'benutzer2@example.com', password: 'password123', name: 'Benutzer 2' },
-        { id: 3, email: 'benutzer3@example.com', password: 'password123', name: 'Benutzer 3' },
-        { id: 4, email: 'benutzer4@example.com', password: 'password123', name: 'Benutzer 4' }
-    ];
-    
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
         setLoading(true);
 
-      
-        await new Promise(resolve => setTimeout(resolve, 500));
+        // Validierung Frontend
+        if (!email || !password) {
+            setError('Bitte fülle alle Felder aus');
+            setLoading(false);
+            return;
+        }
 
-        const user = users.find(u => u.email === email && u.password === password);
+        try {
+            // API Call zum PHP Backend
+            const response = await apiCall(API_ENDPOINTS.login, 'POST', {
+                email: email.trim(),
+                password: password
+            });
 
-        if (user) {
-            // Update AuthContext via login
-            const userData = {
-                user_id: user.id,
-                email: user.email,
-                name: user.name
-            };
-            
-            // Set both localStorage and context
-            localStorage.setItem('authToken', 'token_' + user.id);
-            localStorage.setItem('sa_user', JSON.stringify(userData));
-            login(email, password);
-            
-            navigate('/dashboard');
-        } else {
-            setError('Email oder Passwort falsch');
+            if (response.success) {
+                // Login über AuthContext
+                login(response.user);
+                
+                // Token speichern (aber NICHT im localStorage!)
+                // Der PHP-Server setzt automatisch httpOnly Cookie
+                sessionStorage.setItem('auth_token', response.token);
+                
+                navigate('/dashboard');
+            }
+        } catch (err) {
+            setError(err.message || 'Login fehlgeschlagen');
+        } finally {
             setLoading(false);
         }
-    }
+    };
 
     return (
         <>
-      <div className="login-container">
-        <div className="login-card">
-            <div className="login-header">
-                <h2>Willkommen zurück</h2>
-                <p>Melde dich bei deinem Konto an</p>
-            </div>
-            
-            {error && <div style={{color: 'red', marginBottom: '10px', padding: '10px', backgroundColor: '#ffe6e6', borderRadius: '4px', fontSize: '14px'}}>{error}</div>}
-            
-            <form className="login-form" id="loginForm" noValidate onSubmit={handleSubmit}>
-                <div className="form-group">
-                    <div className="input-wrapper">
-                        <input 
-                            type="email" 
-                            id="email" 
-                            name="email" 
-                            required 
-                            autoComplete="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            placeholder=" "
-                        />
-                        <label htmlFor="email">E-Mail-Adresse</label>
-                        <span className="focus-border"></span>
+            <div className="login-container">
+                <div className="login-card">
+                    <div className="login-header">
+                        <h2>Willkommen zurück</h2>
+                        <p>Melde dich bei deinem Konto an</p>
+                    </div>
+                    
+                    {error && (
+                        <div style={{
+                            color: 'red',
+                            marginBottom: '10px',
+                            padding: '10px',
+                            backgroundColor: '#ffe6e6',
+                            borderRadius: '4px',
+                            fontSize: '14px'
+                        }}>
+                            {error}
+                        </div>
+                    )}
+                    
+                    <form className="login-form" onSubmit={handleSubmit} noValidate>
+                        <div className="form-group">
+                            <div className="input-wrapper">
+                                <input 
+                                    type="email" 
+                                    id="email" 
+                                    name="email" 
+                                    required 
+                                    autoComplete="email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    placeholder=" "
+                                    disabled={loading}
+                                />
+                                <label htmlFor="email">E-Mail-Adresse</label>
+                                <span className="focus-border"></span>
+                            </div>
+                        </div>
+
+                        <div className="form-group">
+                            <div className="input-wrapper password-wrapper">
+                                <input 
+                                    type="password" 
+                                    id="password" 
+                                    name="password" 
+                                    required 
+                                    autoComplete="current-password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    placeholder=" "
+                                    disabled={loading}
+                                />
+                                <label htmlFor="password">Passwort</label>
+                                <span className="focus-border"></span>
+                            </div>
+                        </div>
+
+                        <button type="submit" className="login-btn btn" disabled={loading}>
+                            <span className="btn-text">
+                                {loading ? 'Wird geladen...' : 'Anmelden'}
+                            </span>
+                            <span className="btn-loader"></span>
+                        </button>
+                    </form>
+
+                    <div className="signup-link">
+                        <p><strong>Demo-Benutzerdaten:</strong><br/>
+                        Email: test@example.com<br/>
+                        Passwort: Test123!</p>
                     </div>
                 </div>
-
-                <div className="form-group">
-                    <div className="input-wrapper password-wrapper">
-                        <input 
-                            type="password" 
-                            id="password" 
-                            name="password" 
-                            required 
-                            autoComplete="current-password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            placeholder=" "
-                        />
-                        <label htmlFor="password">Passwort</label>
-                        <span className="focus-border"></span>
-                    </div>
-                </div>
-
-                <button type="submit" className="login-btn btn" disabled={loading}>
-                    <span className="btn-text">{loading ? 'Wird geladen...' : 'Anmelden'}</span>
-                    <span className="btn-loader"></span>
-                </button>
-            </form>
-
-            <div className="signup-link">
-                <p><strong>Demo-Benutzerdaten:</strong><br/>
-                Email: benutzer1@example.com<br/>
-                Passwort: password123</p>
             </div>
-        </div>
-    </div>
         </>
-
-    )
+    );
 }
+
 export default Login;

@@ -10,6 +10,7 @@ export const API_ENDPOINTS = {
   disposition: `${API_BASE}/disposition.php`,
   rapportieren: `${API_BASE}/rapportieren.php`,
   verrechnung: `${API_BASE}/verrechnungen.php`,
+  login: `${API_BASE}/login.php`
 };
 
 // ========== GENERIC FETCH WRAPPER ==========
