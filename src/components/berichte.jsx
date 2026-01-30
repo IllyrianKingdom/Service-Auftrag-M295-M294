@@ -264,7 +264,10 @@ function Berichte() {
                     <button 
                       className="delete-btn-klein" 
                       onClick={(e) => {e.stopPropagation(); handleDelete(bericht.id);}}
-                    />
+                    >
+                      x
+                    </button>
+                    
                   </div>
                 </div>
               </div>

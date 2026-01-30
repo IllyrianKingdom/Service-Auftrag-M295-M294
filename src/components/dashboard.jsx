@@ -81,7 +81,7 @@ function Dashboard() {
         
         <header className="dashboard-header">
           <h1 className="company-name">AVA GmbH</h1>
-          <span className="user-info">BL {user?.name || 'User'}</span>
+          <span className="user-info"> {user?.name || 'User'}</span>
         </header>
         
         <div className="dashboard-layout">
