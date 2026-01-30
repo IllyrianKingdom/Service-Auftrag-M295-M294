@@ -1,40 +1,12 @@
 <?php
+session_start();
+require_once 'config.php';
+
 // ============ ERROR HANDLING ============
 error_reporting(E_ALL);
 ini_set('display_errors', 0);
 ini_set('log_errors', 1);
 ini_set('error_log', '/var/log/php_errors.log');
-
-// ============ CORS HEADERS (WICHTIG!) ============
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Authorization');
-header('Content-Type: application/json; charset=utf-8');
-
-// ============ PREFLIGHT HANDLING ============
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
-    exit();
-}
-
-// ============ DATABASE CONNECTION (PostgreSQL) ============
-function getDBConnection() {
-    try {
-        $dsn = 'pgsql:host=aws-1-eu-central-1.pooler.supabase.com' . 
-               ';port=5432' . 
-               ';dbname=postgres' . 
-               ';sslmode=require';
-        
-        $pdo = new PDO($dsn, 'postgres.kemkyxpxvpxikuusrubo', 'VedranAlessioArnis', [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-            PDO::ATTR_PERSISTENT => false
-        ]);
-        return $pdo;
-    } catch (PDOException $e) {
-        sendError(500, 'Database connection failed: ' . $e->getMessage());
-    }
-}
 
 // ============ HELPER FUNCTIONS ============
 function getJsonInput() {

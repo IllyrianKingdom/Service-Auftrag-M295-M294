@@ -10,17 +10,41 @@ export const API_ENDPOINTS = {
   disposition: `${API_BASE}/disposition.php`,
   rapportieren: `${API_BASE}/rapportieren.php`,
   verrechnung: `${API_BASE}/verrechnungen.php`,
-  login: `${API_BASE}/login.php`
+  login: `${API_BASE}/login.php`,
+  logout: `${API_BASE}/logout.php`
 };
 
-// ========== GENERIC FETCH WRAPPER ==========
+// ========== ERROR MESSAGE MAPPING ==========
+// Übersetzt HTTP-Status-Codes in benutzerfreundliche Meldungen
+function getErrorMessage(status, serverError = null) {
+  // Wenn der Server eine sprechende Fehlermeldung sendet, nutze diese
+  if (serverError) {
+    return serverError;
+  }
+
+  const errorMessages = {
+    400: 'Die Anfrage war ungültig. Überprüfe deine Eingaben.',
+    401: 'E-Mail oder Passwort ist ungültig.',
+    403: 'Zugriff verweigert. Du hast keine Berechtigung.',
+    404: 'Die Ressource wurde nicht gefunden.',
+    408: 'Anfrage abgelaufen. Bitte versuche es erneut.',
+    500: 'Serverfehler - bitte versuche es später erneut.',
+    502: 'Schlechtes Gateway - der Server antwortet nicht.',
+    503: 'Der Server ist momentan nicht erreichbar.',
+    504: 'Verbindungszeitüberschreitung - bitte versuche es später erneut.'
+  };
+
+  return errorMessages[status] || `Ein Fehler ist aufgetreten (HTTP ${status})`;
+}
+
+// ========== API CALL FUNCTION ==========
 export async function apiCall(endpoint, method = 'GET', data = null) {
   const options = {
     method,
     headers: {
-      'Content-Type': 'application/json',
+      'Content-Type': 'application/json'
     },
-    mode: 'cors',
+    credentials: 'include' // wichtig für Cookies!
   };
 
   if (data) {
@@ -30,44 +54,49 @@ export async function apiCall(endpoint, method = 'GET', data = null) {
   try {
     const response = await fetch(endpoint, options);
 
-    // ========== CHECK RESPONSE STATUS FIRST =========
-    // WICHTIG: Status prüfen BEVOR wir .json() parsen
+    // ===== RESPONSE PARSEN (auch bei Errors!) =====
+    let responseData = null;
+    try {
+      responseData = await response.json();
+    } catch (e) {
+      // Wenn JSON-Parsing fehlschlägt, haben wir einen Netzwerk- oder Server-Fehler
+      responseData = { error: getErrorMessage(response.status) };
+    }
+
+    // ===== 401 - SESSION UNGÜLTIG =====
+    if (response.status === 401) {
+      localStorage.removeItem('sa_user');
+      localStorage.removeItem('authToken');
+      sessionStorage.removeItem('auth_token');
+      
+      // Error werfen, bevor wir redirect - damit kann die Login-Component reagieren
+      const error = new Error(responseData.error || 'Deine Session ist abgelaufen. Bitte melde dich erneut an.');
+      error.status = 401;
+      error.data = responseData;
+      throw error;
+    }
+
+    // ===== ANDERE FEHLER (400, 403, 500, etc.) =====
     if (!response.ok) {
-      // Wenn HTTP-Fehler: Versuche HTML/Text zu lesen
-      const errorText = await response.text();
-      
-      // Versuche JSON zu parsen, falls vorhanden
-      let errorMessage = 'API request failed';
-      try {
-        const errorJson = JSON.parse(errorText);
-        errorMessage = errorJson.error || errorJson.message || errorText;
-      } catch {
-        // Falls nicht JSON, nutze Rohen Text
-        errorMessage = errorText.substring(0, 200); // Erste 200 Zeichen
-      }
-      
-      throw new Error(`HTTP ${response.status}: ${errorMessage}`);
+      const errorMessage = responseData.error || getErrorMessage(response.status);
+      const error = new Error(errorMessage);
+      error.status = response.status;
+      error.data = responseData;
+      throw error;
     }
 
-    // ========== PARSE JSON (Jetzt sicher!) =========
-    const json = await response.json();
+    // ===== SUCCESS =====
+    return responseData;
 
-    // ========== RESPONSE HANDLING ==========
-    // GET Requests: Returns array directly
-    if (method === 'GET') {
-      return Array.isArray(json) ? json : [];
-    }
-
-    // POST/PUT/DELETE Requests: Returns { success: true, data: ... }
-    // Check für success flag
-    if (!json.success) {
-      throw new Error(json.error || json.message || 'API request failed');
-    }
-
-    return json;
   } catch (error) {
-    console.error('API Error:', error);
-    console.error('Error Stack:', error.stack);
+    // Netzwerkfehler (z.B. offline, CORS, Timeout)
+    if (error instanceof TypeError) {
+      const networkError = new Error('Netzwerkfehler - Überprüfe deine Internetverbindung');
+      networkError.isNetworkError = true;
+      throw networkError;
+    }
+
+    // Alle anderen Errors weitergeben
     throw error;
   }
 }

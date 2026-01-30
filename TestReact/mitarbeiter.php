@@ -1,13 +1,8 @@
 <?php
-// mitarbeiter.php - Mit require_once config.php
 
 require_once 'config.php';
 
-// ========== PREFLIGHT REQUEST HANDLING ==========
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
-    exit();
-}
+$conn =getDBConnection();
 
 // ========== GET - Alle Mitarbeiter ==========
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {

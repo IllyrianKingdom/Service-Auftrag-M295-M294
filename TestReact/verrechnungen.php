@@ -1,21 +1,5 @@
 <?php
-// ============ CORS HEADERS (MUST BE FIRST!) ============
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Authorization');
-header('Content-Type: application/json; charset=utf-8');
-
-
-// ============ PREFLIGHT REQUEST ============
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
-    exit();
-}
-
-
-// ============ DEPENDENCIES ============
 require_once 'config.php';
-
 
 // ============ HELPER FUNCTIONS ============
 function getJsonInput() {
@@ -29,7 +13,6 @@ function getJsonInput() {
     }
     return $data;
 }
-
 
 function sendError($code, $message) {
     http_response_code($code);

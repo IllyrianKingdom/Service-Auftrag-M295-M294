@@ -2,13 +2,23 @@ import { Navigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
 
 export default function ProtectedRoute({ children }) {
-  const { user } = useAuth();
+  const { user, isInitialized } = useAuth();
   
+  // Warte bis AuthProvider initialisiert ist
+  if (!isInitialized) {
+    return <div>Loading...</div>;
+  }
+  
+  // Prüfe ob User im Context ist
   const hasContextUser = !!user;
-  const hasLocalStorageUser = !!localStorage.getItem("sa_user");
-  const hasAuthToken = !!localStorage.getItem("authToken");
   
+  // Oder in localStorage
+  const hasLocalStorageUser = !!localStorage.getItem("sa_user");
+  
+  // Und ob Token existiert
+  const hasAuthToken = !!localStorage.getItem("authToken");
 
+  // User ist authenticated wenn beides da ist
   const isAuthenticated = hasAuthToken && (hasContextUser || hasLocalStorageUser);
 
   if (!isAuthenticated) {
@@ -17,4 +27,3 @@ export default function ProtectedRoute({ children }) {
                   
   return children;
 }
-

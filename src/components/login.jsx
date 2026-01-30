@@ -32,17 +32,20 @@ function Login() {
             });
 
             if (response.success) {
-                // Login über AuthContext
+                // WICHTIG: Token ZUERST speichern
+                localStorage.setItem('authToken', response.token);
+                
+                // DANN Login über AuthContext
                 login(response.user);
                 
-                // Token speichern (aber NICHT im localStorage!)
-                // Der PHP-Server setzt automatisch httpOnly Cookie
-                sessionStorage.setItem('auth_token', response.token);
-                
+                // DANN navigate
                 navigate('/dashboard');
             }
         } catch (err) {
+            // Hier kommt jetzt die sprechende Fehlermeldung vom Server
+            // oder die fallback-Meldung aus der apiCall-Funktion
             setError(err.message || 'Login fehlgeschlagen');
+            console.error('Login error details:', err);
         } finally {
             setLoading(false);
         }
@@ -59,12 +62,14 @@ function Login() {
                     
                     {error && (
                         <div style={{
-                            color: 'red',
-                            marginBottom: '10px',
-                            padding: '10px',
-                            backgroundColor: '#ffe6e6',
+                            color: '#d32f2f',
+                            marginBottom: '15px',
+                            padding: '12px',
+                            backgroundColor: '#ffebee',
                             borderRadius: '4px',
-                            fontSize: '14px'
+                            fontSize: '14px',
+                            border: '1px solid #ef5350',
+                            fontWeight: '500'
                         }}>
                             {error}
                         </div>
@@ -114,12 +119,6 @@ function Login() {
                             <span className="btn-loader"></span>
                         </button>
                     </form>
-
-                    <div className="signup-link">
-                        <p><strong>Demo-Benutzerdaten:</strong><br/>
-                        Email: test@example.com<br/>
-                        Passwort: Test123!</p>
-                    </div>
                 </div>
             </div>
         </>

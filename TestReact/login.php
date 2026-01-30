@@ -1,7 +1,13 @@
 <?php
+// ⚠️ MUST BE FIRST - vor everything!
+session_start();
+
+// Dann config laden
 require_once 'config.php';
 
-// Handle nur POST requests
+// Jetzt erst die Logik
+header('Content-Type: application/json');
+
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
     die(json_encode(['success' => false, 'error' => 'Method not allowed']));
@@ -38,35 +44,34 @@ try {
     $user = $stmt->fetch();
     
     if (!$user) {
-        // WICHTIG: Gleiche Error-Message wie bei falschem Passwort (Sicherheit!)
         http_response_code(401);
         die(json_encode(['success' => false, 'error' => 'Invalid email or password']));
     }
     
-    // Passwort mit Hash vergleichen (password_verify ist sicher!)
+    // Passwort mit Hash vergleichen
     if (!password_verify($password, $user['password_hash'])) {
         http_response_code(401);
         die(json_encode(['success' => false, 'error' => 'Invalid email or password']));
     }
     
-    // Session starten und Benutzer-ID speichern
-    session_start();
+    // Session Daten speichern
     $_SESSION['user_id'] = $user['id'];
     $_SESSION['email'] = $user['email'];
     $_SESSION['name'] = $user['name'];
     
-    // httpOnly Cookie setzen (besser als localStorage!)
+    // httpOnly Cookie setzen
     setcookie('session_id', session_id(), [
-        'expires' => time() + (24 * 60 * 60), // 24 Stunden
+        'expires' => time() + (24 * 60 * 60),
         'path' => '/',
         'httponly' => true,
-        'secure' => true, // Nur über HTTPS
+        'secure' => false, // ⚠️ true nur mit HTTPS!
         'samesite' => 'Lax'
     ]);
     
-    // Token für Frontend (zusätzlich zur Session)
-    $token = bin2hex(random_bytes(32)); // Sicherer Token
+    // Token für Frontend
+    $token = bin2hex(random_bytes(32));
     
+    http_response_code(200);
     die(json_encode([
         'success' => true,
         'message' => 'Login successful',
@@ -80,6 +85,6 @@ try {
     
 } catch (Exception $e) {
     http_response_code(500);
-    die(json_encode(['success' => false, 'error' => 'Server error']));
+    die(json_encode(['success' => false, 'error' => 'Server error', 'debug' => $e->getMessage()]));
 }
 ?>
