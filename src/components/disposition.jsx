@@ -336,13 +336,23 @@ function Disposition() {
             <h3>Keine Dispositionen gefunden</h3>
             <p>Versuche die Suche anzupassen oder erstelle einen neuen Termin</p>
           </div>
+
         ) : (
+
           <>
             <div className="timeline-header" style={{ color: 'black' }}>
+              <div className='mitarbeiter-header'>
               <span>Mitarbeiter</span>
+              </div>
+              <div className='auftrag-header'>
               <span>Auftrag</span>
+              </div>
+              <div className='termin-header'>
               <span>Termin</span>
+              </div>
+              <div className='status-header'>
               <span>Status</span>
+              </div>
               <span></span>
             </div>
 

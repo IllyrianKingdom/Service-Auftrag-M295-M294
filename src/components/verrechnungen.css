@@ -1,378 +1,664 @@
+/* ====== VERRECHNUNGEN-STILEN (ohne :root - nutzt globale CSS-Variablen) ====== */
+
+/* ====== FULLSCREEN LAYOUT ====== */
+
 .verrechnungen-fullscreen {
-  height: 104vh !important;
-  width: 100vw !important;
-  padding: 0 !important;
-  margin: 0 !important;
-  background: linear-gradient(135deg, rgba(20,20,50,0.8) 0%, rgba(10,10,30,0.9) 100%);
-  backdrop-filter: blur(25px);
+  height: 104vh;
+  width: 100vw;
+  padding: 0;
+  margin: 0;
+  background: var(--color-background);
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  color: rgba(255,255,255,0.9) !important;
-  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  color: var(--color-text);
+  font-family: var(--font-family-base);
 }
 
-/* HEADER */
+/* ====== HEADER ====== */
+
 .verrechnungen-header {
-  padding: 40px;
+  padding: var(--space-32);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: transparent;
-  gap: 20px;
+  background: var(--color-background);
+  border-bottom: 1px solid var(--color-border);
+  gap: var(--space-20);
   flex-shrink: 0;
+}
+
+.verrechnungen-header h1 {
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text);
+  margin: 0;
+  letter-spacing: var(--letter-spacing-tight);
 }
 
 .header-left {
   display: flex;
   align-items: center;
-  gap: 40px;
+  gap: var(--space-32);
 }
 
-.verrechnungen-header h1 {
-  font-size: 36px;
-  font-weight: 700;
-  background: linear-gradient(135deg, #10b981, #059669);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  margin: 0;
-}
-
-/* STATS */
 .verrechnungen-stats {
   text-align: center;
 }
 
 .anzahl {
   display: block;
-  font-size: 36px;
-  font-weight: 800;
-  color: #10b981;
-  line-height: 1;
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text);
+  line-height: var(--line-height-tight);
 }
 
 .label {
-  font-size: 14px;
-  color: rgba(255,255,255,0.6);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
   text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: var(--font-weight-medium);
 }
 
 /* BACK BUTTON */
+
 .back-btn {
-  background: rgba(255,255,255,0.15);
-  color: white !important;
-  border: 1px solid rgba(255,255,255,0.3);
-  padding: 12px 20px;
-  border-radius: 12px;
-  font-weight: 600;
+  background: var(--color-primary);
+  color: var(--color-white);
+  border: none;
+  padding: var(--space-10) var(--space-20);
+  border-radius: var(--radius-base);
+  font-size: var(--font-size-base);
   text-decoration: none;
-  backdrop-filter: blur(10px);
-  transition: all 0.3s ease;
+  cursor: pointer;
+  transition: all var(--duration-normal) var(--ease-standard);
+  box-shadow: var(--shadow-sm);
   display: inline-flex;
   align-items: center;
 }
 
 .back-btn:hover {
-  background: rgba(255,255,255,0.25);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(255,255,255,0.2);
+  background: var(--color-primary-hover);
+  color: var(--color-white);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
 }
 
-/* NEUE RECHNUNG BUTTON */
-.neue-rechnung-btn {
-  background: linear-gradient(135deg, #10b981, #059669);
-  color: white;
-  border: none;
-  padding: 14px 28px;
-  border-radius: 12px;
-  font-weight: 600;
+/* HEADER CONTROLS */
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-16);
+}
+
+.suchleiste input {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-base);
+  padding: var(--space-12) var(--space-16);
+  color: var(--color-text);
+  width: 220px;
+  font-size: var(--font-size-base);
+  font-family: var(--font-family-base);
+  transition: all var(--duration-normal) var(--ease-standard);
+}
+
+.suchleiste input:focus {
+  outline: var(--focus-outline);
+  border-color: var(--color-primary);
+  background: var(--color-surface);
+  box-shadow: 0 0 0 3px rgba(var(--color-teal-500-rgb), 0.4);
+}
+
+.suchleiste input::placeholder {
+  color: var(--color-text-secondary);
+}
+
+.filter-select select {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-base);
+  padding: var(--space-12) var(--space-32) var(--space-12) var(--space-16);
+  color: var(--color-text);
   cursor: pointer;
-  box-shadow: 0 4px 20px rgba(16,185,129,0.3);
-  transition: all 0.3s ease;
+  font-size: var(--font-size-base);
+  font-family: var(--font-family-base);
+  transition: all var(--duration-normal) var(--ease-standard);
+  background-image: var(--select-caret-light);
+  background-position: right var(--space-12) center;
+  background-repeat: no-repeat;
+  background-size: 16px;
+  appearance: none;
+  min-width: 140px;
+}
+
+.filter-select select:focus {
+  outline: var(--focus-outline);
+  border-color: var(--color-primary);
+  background-color: var(--color-surface);
+  box-shadow: 0 0 0 3px rgba(var(--color-teal-500-rgb), 0.4);
+}
+
+/* Neue Rechnung Button */
+
+.neue-rechnung-btn {
+  background: var(--color-primary);
+  color: var(--color-btn-primary-text);
+  border: none;
+  padding: var(--space-12) var(--space-24);
+  border-radius: var(--radius-base);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-base);
+  cursor: pointer;
+  transition: all var(--duration-normal) var(--ease-standard);
+  white-space: nowrap;
+  box-shadow: var(--shadow-sm);
 }
 
 .neue-rechnung-btn:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 30px rgba(16,185,129,0.4);
+  background: var(--color-primary-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
 }
 
-/* TIMELINE */
-.verrechnungen-timeline {
-  flex: 1;
-  padding: 40px;
-  overflow-y: auto;
-}
+/* ====== ERROR BANNER ====== */
 
-.timeline-header {
-  display: grid;
-  grid-template-columns: 200px 1fr 150px 150px 150px 60px;
-  gap: 20px;
-  padding: 20px 0;
-  margin-bottom: 24px;
-  font-weight: 600;
-  color: rgba(255,255,255,0.8);
-  font-size: 14px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.auftrag-header {
-  padding-left: 17vh;
-  gap: 25px;
-}
-
-
-
-.status-header {
-  padding-left: 40vh;
-  gap: 25px;
-}
-.betrag-header {
-  padding-left: 62vh;
-  gap: 25px;
-}
-.datum-header {
-  padding-left: 80vh;
-  gap: 25px;
-}
-
-/* VERRECHNUNG ZEILEN */
-.verr-zeile {
-  display: grid;
-  grid-template-columns: 200px 1fr 200px 200px 200px 60px;
-  gap: 200px;
-  padding: 24px 0;
-  transition: all 0.3s ease;
-  cursor: pointer;
-}
-
-.verr-zeile:hover {
-  background: rgba(255,255,255,0.05);
-  border-radius: 12px;
-  margin: 0 -20px;
-  padding-left: 20px;
-  padding-right: 20px;
-}
-
-/* KUNDE (wie Mitarbeiter in Disposition) */
-.verr-kunde {
+.error-banner {
+  background: rgba(var(--color-red-500-rgb), 0.08);
+  color: var(--color-error);
+  border-bottom: 1px solid rgba(var(--color-red-500-rgb), 0.3);
+  padding: var(--space-12) var(--space-24);
   display: flex;
   align-items: center;
-  gap: 12px;
+  justify-content: space-between;
+  gap: var(--space-12);
 }
 
-.avatar {
-  width: 40px;
-  height: 40px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 16px;
-  color: white;
-}
-
-/* AUFTRAG */
-.verr-auftrag {
-  /* Kein h4/p-Struktur wie bei Disposition, nur Text */
-}
-
-.verr-auftrag h4 {
-  margin: 0 0 4px 0;
-  font-size: 16px;
-  font-weight: 700;
-  color: white;
-}
-
-/* BETRAG (wie Termin in Disposition) */
-.verr-betrag {
-  font-weight: 600;
-  color: #10b981;
-  font-size: 16px;
-}
-
-/* STATUS */
-.verr-status .status-badge {
-  padding: 6px 16px;
-  border-radius: 20px;
-  font-size: 13px;
-  font-weight: 600;
-  text-transform: uppercase;
-}
-
-.status-offen { background: rgba(245,101,101,0.2); color: #f56565; }
-.status-bezahlt { background: rgba(16,185,129,0.2); color: #10b981; }
-.status-überfällig { background: rgba(236,72,153,0.2); color: #ec4899; }
-
-/* DELETE BUTTON */
-.delete-btn {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: rgba(245,101,101,0.8);
+.error-banner button {
+  background: transparent;
   border: none;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
-  flex-shrink: 0;
-  position: relative;
+  color: var(--color-error);
+  font-size: var(--font-size-lg);
+  padding: var(--space-4);
+  border-radius: var(--radius-sm);
+  transition: background-color var(--duration-normal);
 }
 
-.delete-btn:hover {
-  background: #f56565;
-  transform: scale(1.1);
-  box-shadow: 0 4px 15px rgba(245,101,101,0.4);
+.error-banner button:hover {
+  background: rgba(var(--color-red-500-rgb), 0.1);
 }
 
-.delete-btn::before,
-.delete-btn::after {
-  content: '';
-  position: absolute;
-  width: 16px;
-  height: 2px;
-  background: white;
-  border-radius: 1px;
-  top: 50%;
-  left: 50%;
-}
+/* ====== NEUE RECHNUNG FORM ====== */
 
-.delete-btn::before {
-  transform: translate(-50%, -50%) rotate(45deg);
-}
-
-.delete-btn::after {
-  transform: translate(-50%, -50%) rotate(-45deg);
-}
-
-/* FORMULAR - GENAU WIE DISPOSITION */
 .neuer-termin-form-wrapper {
-  padding: 24px 40px;
-  background: transparent;
-  flex-shrink: 0;
+  padding: var(--space-24) var(--space-32);
+  background: var(--color-background);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .neuer-termin-form-wrapper h3 {
-  color: #ffffff;
-  font-size: 18px;
-  font-weight: 600;
-  margin-bottom: 12px;
+  margin: 0 0 var(--space-16) 0;
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
 }
 
 .neuer-termin-form {
-  background: rgba(255, 255, 255, 0.06);
-  backdrop-filter: blur(18px);
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 16px;
-  padding: 20px 20px 16px 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-card-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-24);
+  max-width: 900px;
+  margin-left: auto;
+  box-shadow: var(--shadow-sm);
 }
 
-.neuer-termin-form .form-grid {
+.form-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr;
-  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--space-16);
+  margin-bottom: var(--space-16);
 }
 
 .neuer-termin-form input,
 .neuer-termin-form select {
-  background: rgba(8, 12, 30, 0.9);
-  border: 1px solid rgba(148, 163, 184, 0.6);
-  border-radius: 10px;
-  padding: 10px 12px;
-  color: #e5e7eb;
-  font-size: 14px;
-  font-family: inherit;
-  outline: none;
-  min-width: 0;
-}
-
-.neuer-termin-form input::placeholder {
-  color: rgba(148, 163, 184, 0.85);
-}
-
-.neuer-termin-form select {
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='%23e5e7eb' viewBox='0 0 20 20'%3e%3cpath d='M5.25 7.5L10 12.25 14.75 7.5H5.25z'/%3e%3c/svg%3e");
-  background-repeat: no-repeat;
-  background-position: right 10px center;
-  background-size: 14px 14px;
-  padding-right: 26px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-base);
+  padding: var(--space-12) var(--space-16);
+  color: var(--color-text);
+  font-size: var(--font-size-base);
+  font-family: var(--font-family-base);
+  transition: all var(--duration-normal) var(--ease-standard);
 }
 
 .neuer-termin-form input:focus,
 .neuer-termin-form select:focus {
-  border-color: #10b981;
-  box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.4);
+  border-color: var(--color-primary);
+  outline: var(--focus-outline);
+  box-shadow: 0 0 0 3px rgba(var(--color-teal-500-rgb), 0.4);
 }
 
-.neuer-termin-form .form-actions {
+.neuer-termin-form input::placeholder {
+  color: var(--color-text-secondary);
+}
+
+.neuer-termin-form input[required],
+.neuer-termin-form select[required] {
+  border-color: var(--color-primary);
+}
+
+/* Form Aktionen */
+
+.form-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 10px;
-  margin-top: 4px;
+  gap: var(--space-12);
+  margin-top: var(--space-8);
 }
 
-.neuer-termin-form .cancel-btn,
-.neuer-termin-form .speichern-btn {
-  border-radius: 999px;
-  font-size: 14px;
-  font-weight: 600;
-  padding: 8px 18px;
-  border: none;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.neuer-termin-form .cancel-btn {
+.cancel-btn {
   background: transparent;
-  color: #e5e7eb;
-  border: 1px solid rgba(148, 163, 184, 0.6);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  padding: var(--space-10) var(--space-16);
+  border-radius: var(--radius-base);
+  font-size: var(--font-size-base);
+  cursor: pointer;
+  transition: all var(--duration-normal) var(--ease-standard);
 }
 
-.neuer-termin-form .cancel-btn:hover {
-  background: rgba(148, 163, 184, 0.15);
+.cancel-btn:hover {
+  background: var(--color-secondary);
+  border-color: var(--color-secondary-hover);
 }
 
-.neuer-termin-form .speichern-btn {
-  background: linear-gradient(135deg, #10b981, #059669);
-  color: #ffffff;
-  box-shadow: 0 6px 18px rgba(16, 185, 129, 0.45);
+.speichern-btn {
+  background: var(--color-primary);
+  color: var(--color-btn-primary-text);
+  border: none;
+  padding: var(--space-10) var(--space-20);
+  border-radius: var(--radius-base);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-base);
+  cursor: pointer;
+  transition: all var(--duration-normal) var(--ease-standard);
+  box-shadow: var(--shadow-sm);
 }
 
-.neuer-termin-form .speichern-btn:hover {
+.speichern-btn:hover {
+  background: var(--color-primary-hover);
   transform: translateY(-1px);
-  box-shadow: 0 10px 26px rgba(16, 185, 129, 0.6);
+  box-shadow: var(--shadow-md);
 }
 
-/* RESPONSIVE - GENAU WIE DISPOSITION */
-@media (max-width: 1200px) {
-  .timeline-header,
-  .verr-zeile {
-    grid-template-columns: 160px 1fr 120px 120px 50px;
-    gap: 16px;
+/* ====== VERRECHNUNGEN TIMELINE ====== */
+
+.verrechnungen-timeline {
+  flex: 1;
+  padding: var(--space-32);
+  overflow-y: auto;
+  background: var(--color-background);
+}
+
+/* Timeline Header - Flex Layout für bessere Kontrolle */
+
+.timeline-header {
+  display: grid;
+  grid-template-columns: 1.5fr 2.5fr 1fr 1fr 1.2fr auto;
+  gap: 50px;
+  padding: var(--space-12) var(--space-16);
+  margin-bottom: var(--space-12);
+  font-size: var(--font-size-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-medium);
+  border-bottom: 1px solid var(--color-border);
+  align-items: center;
+}
+
+.kunde-header{
+
+
+}
+.auftrag-header{
+
+padding-left: 24px;
+}
+.status-header{
+padding-left: 450px;
+
+}
+.betrag-header{
+padding-left: 300px;
+
+}
+.datum-header {
+  padding-left: 150px; 
+  
+}
+
+/* Einzelne Verrechnung-Zeile */
+
+.verr-zeile {
+  display: grid;
+  grid-template-columns: 1.5fr 2.5fr 1fr 1fr 1.2fr auto;
+  gap: var(--space-16);
+  align-items: center;
+  padding: var(--space-16);
+  margin-bottom: var(--space-8);
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-card-border);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--duration-normal) var(--ease-standard);
+}
+
+.verr-zeile:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-border);
+}
+
+/* Kunde */
+
+.verr-kunde {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  background: var(--color-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+}
+
+.verr-kunde span {
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text);
+}
+
+/* Auftrag */
+
+.verr-auftrag {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.verr-auftrag h4 {
+  margin: 0;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+}
+
+.verr-auftrag small {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+/* Status Select */
+
+.verr-status {
+  display: flex;
+  justify-content: center;
+}
+
+.status-select {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-8) var(--space-40) var(--space-8) var(--space-16) !important;
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  position: relative;
+  appearance: none;
+}
+
+.status-select::after {
+  content: '▼';
+  position: absolute;
+  right: var(--space-12);
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  font-size: var(--font-size-sm);
+  color: black;
+  font-weight: var(--font-weight-medium);
+}
+
+
+.status-offen { background: rgba(59, 130, 246, 0.08); color: #3b82f6; }
+.status-bezahlt { background: rgba(34, 197, 94, 0.08); color: #22c55e; }
+.status-überfällig { background: rgba(239, 68, 68, 0.08); color: #ef4444; }
+/* Status-spezifische Farben */
+
+.status-select:hover {
+  background-color: var(--color-secondary);
+  border-color: var(--color-border);
+}
+
+.status-select:focus {
+  outline: var(--focus-outline);
+  background-color: var(--color-surface);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(var(--color-teal-500-rgb), 0.4);
+}
+
+/* Betrag */
+
+.verr-betrag {
+  text-align: right;
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+}
+
+/* Datum */
+
+.verr-datum {
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  text-align: center;
+}
+
+/* Delete Button */
+
+.delete-btn {
+  background: transparent;
+  color: var(--color-error);
+  border: 1px solid rgba(var(--color-red-500-rgb), 0.4);
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--duration-normal) var(--ease-standard);
+}
+
+.delete-btn:hover {
+  background: rgba(var(--color-red-500-rgb), 0.1);
+  border-color: var(--color-error);
+}
+
+/* ====== EMPTY STATE ====== */
+
+.empty-state {
+  padding: 80px var(--space-32);
+  text-align: center;
+  color: var(--color-text-secondary);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.empty-state h3 {
+  font-size: var(--font-size-2xl);
+  margin-bottom: var(--space-12);
+  color: var(--color-text);
+  font-weight: var(--font-weight-semibold);
+}
+
+.empty-state p {
+  font-size: var(--font-size-base);
+  margin: 0;
+}
+
+/* ====== SCROLLBAR ====== */
+
+.verrechnungen-timeline::-webkit-scrollbar {
+  width: 8px;
+}
+
+.verrechnungen-timeline::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.verrechnungen-timeline::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+.verrechnungen-timeline::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-secondary);
+}
+
+/* ====== RESPONSIVE ====== */
+
+@media (max-width: 1024px) {
+  .verrechnungen-timeline {
+    padding: var(--space-24) var(--space-20);
   }
 }
 
 @media (max-width: 768px) {
+  .verrechnungen-header {
+    flex-direction: column;
+    align-items: stretch;
+    padding: var(--space-24);
+    gap: var(--space-16);
+  }
+
+  .header-left {
+    flex-direction: column;
+    gap: var(--space-16);
+  }
+
   .header-controls {
     flex-direction: column;
     align-items: stretch;
-    gap: 12px;
+    width: 100%;
+    gap: var(--space-12);
   }
-  
-  .timeline-header,
+
+  .suchleiste input {
+    width: 100%;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .timeline-header {
+    grid-template-columns: 1.5fr 2fr 1fr 1fr auto;
+  }
+
+  .verr-zeile {
+    grid-template-columns: 1.5fr 2fr 1fr 1fr auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .verrechnungen-fullscreen {
+    height: 100vh;
+  }
+
+  .verrechnungen-header {
+    padding: var(--space-16);
+  }
+
+  .verrechnungen-header h1 {
+    font-size: var(--font-size-2xl);
+  }
+
+  .header-left {
+    gap: var(--space-12);
+  }
+
+  .header-controls {
+    gap: var(--space-8);
+  }
+
+  .anzahl {
+    font-size: var(--font-size-2xl);
+  }
+
+  .label {
+    font-size: var(--font-size-xs);
+  }
+
+  .back-btn,
+  .neue-rechnung-btn {
+    padding: var(--space-10) var(--space-16);
+    font-size: var(--font-size-sm);
+  }
+
+  .neuer-termin-form-wrapper {
+    padding: var(--space-12) var(--space-16);
+  }
+
+  .neuer-termin-form {
+    padding: var(--space-16);
+  }
+
+  .verrechnungen-timeline {
+    padding: var(--space-16);
+  }
+
+  .timeline-header {
+    display: none;
+  }
+
   .verr-zeile {
     grid-template-columns: 1fr;
-    gap: 12px;
+    gap: var(--space-12);
   }
-  
-  .verrechnungen-timeline {
-    padding: 20px;
+
+  .verr-kunde,
+  .verr-auftrag {
+    grid-column: 1;
+  }
+
+  .verr-status,
+  .verr-betrag,
+  .verr-datum {
+    grid-column: 1;
+  }
+
+  .empty-state {
+    padding: 40px var(--space-16);
+  }
+
+  .empty-state h3 {
+    font-size: var(--font-size-xl);
   }
 }

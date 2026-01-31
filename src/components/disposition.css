@@ -366,5 +366,13 @@
   .header-controls { flex-direction: column; width: 100%; }
   .suchleiste input { width: 100%; }
   .form-grid { grid-template-columns: 1fr; }
-  .timeline-header, .dispo-zeile { grid-template-columns: 1fr; gap: var(--space-12); }
+  
+}
+.timeline-header {
+  display: grid;
+  grid-template-columns: 1.5fr 2.5fr 1fr 1fr 1.2fr auto;
+  gap: 50px;
+  padding: var(--space-12) var(--space-16);
+  margin-bottom: var(--space-12);
+  font-size: var(--font-size-sm);
 }
