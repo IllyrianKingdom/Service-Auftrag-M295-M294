@@ -2,12 +2,14 @@
 
 require_once 'config.php';
 
+date_default_timezone_set('Europe/Zurich');
+
 $conn =getDBConnection();
 
 // ========== GET - Alle Mitarbeiter ==========
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     try {
-        $query = "SELECT mitarbeiter_id, vorname, name, rolle, status, telefonnummer, email FROM Mitarbeiter ORDER BY name ASC";
+        $query = "SELECT mitarbeiter_id, vorname, name, rolle, status, telefonnummer, email, created_at, updated_at FROM Mitarbeiter ORDER BY name ASC";
         $stmt = $conn->prepare($query);
         $stmt->execute();
         $mitarbeiter = $stmt->fetchAll(PDO::FETCH_ASSOC);

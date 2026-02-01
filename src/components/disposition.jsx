@@ -11,12 +11,14 @@ function Disposition() {
   const [alleMitarbeiter, setAlleMitarbeiter] = useState([]);
   const [alleAuftraege, setAlleAuftraege] = useState([]);
   const [neuerTermin, setNeuerTermin] = useState({
+    Disponent_id: '',
     Mitarbeiter_id: '',
     Auftrag_id: '',
     Geplanter_Termin: '',
     Status: 'geplant',
     Notiz: ''
-  });
+});
+
   const [showNewTermin, setShowNewTermin] = useState(false);
   const [suchbegriff, setSuchbegriff] = useState('');
   const [loading, setLoading] = useState(true);

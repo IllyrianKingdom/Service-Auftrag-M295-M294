@@ -23,7 +23,6 @@ function sendError($code, $message) {
     exit();
 }
 
-
 function sendSuccess($data = [], $message = 'Success') {
     http_response_code(200);
     echo json_encode([
@@ -33,7 +32,6 @@ function sendSuccess($data = [], $message = 'Success') {
     ]);
     exit();
 }
-
 
 function sendCreated($id, $message = 'Created') {
     http_response_code(201);
@@ -45,8 +43,7 @@ function sendCreated($id, $message = 'Created') {
     exit();
 }
 
-
-// ============ MAIN ROUTER (FIXED!) ============
+// ============ MAIN ROUTER ============
 try {
     $pdo = getDBConnection();
     $method = $_SERVER['REQUEST_METHOD'];
@@ -54,7 +51,6 @@ try {
     if ($method === 'GET') {
         getAllVerrechnungen($pdo);
     } elseif ($method === 'POST') {
-        // FIXED: Use $_SERVER['QUERY_STRING'] instead of parse_url
         $query = $_SERVER['QUERY_STRING'] ?? '';
         
         if (strpos($query, 'delete') !== false) {
@@ -73,24 +69,24 @@ try {
     $pdo = null;
 }
 
-
 // ============ GET ALL VERRECHNUNGEN ============
 function getAllVerrechnungen($pdo) {
     $query = "
         SELECT 
             v.verrechnung_id,
             v.auftrag_id,
+            v.kunden_id,
             v.rechnungsdatum,
             v.betrag,
             v.status,
             v.bemerkung,
             a.auftragsname,
-            k.firma,
+            k.vorname,
             k.name,
-            k.vorname
+            k.firma
         FROM verrechnungen v
         LEFT JOIN auftraege a ON v.auftrag_id = a.auftrag_id
-        LEFT JOIN kunde k ON a.kunden_id = k.kunden_id
+        LEFT JOIN kunde k ON v.kunden_id = k.kunden_id
         ORDER BY v.rechnungsdatum DESC
     ";
 
@@ -106,32 +102,33 @@ function getAllVerrechnungen($pdo) {
     }
 }
 
-
 // ============ CREATE VERRECHNUNG ============
 function createVerrechnung($pdo) {
     $data = getJsonInput();
 
     // Validation
-    if (empty($data['Auftrag_id']) || empty($data['Betrag'])) {
-        sendError(400, 'Missing required fields: Auftrag_id, Betrag');
+    if (empty($data['Auftrag_id']) || empty($data['Betrag']) || empty($data['Kunden_id'])) {
+        sendError(400, 'Missing required fields: Auftrag_id, Kunden_id, Betrag');
     }
 
     $auftrag_id = (int)$data['Auftrag_id'];
+    $kunden_id = (int)$data['Kunden_id'];
     $rechnungsdatum = $data['Rechnungsdatum'] ?? date('Y-m-d');
     $betrag = (float)$data['Betrag'];
     $status = $data['Status'] ?? 'offen';
     $bemerkung = $data['Bemerkung'] ?? '';
 
     $sql = "INSERT INTO verrechnungen 
-            (auftrag_id, rechnungsdatum, betrag, status, bemerkung) 
-            VALUES (:auftrag_id, :rechnungsdatum, :betag, :status, :bemerkung)";
+            (auftrag_id, kunden_id, rechnungsdatum, betrag, status, bemerkung) 
+            VALUES (:auftrag_id, :kunden_id, :rechnungsdatum, :betrag, :status, :bemerkung)";
 
     try {
         $stmt = $pdo->prepare($sql);
         $stmt->execute([
             ':auftrag_id' => $auftrag_id,
+            ':kunden_id' => $kunden_id,
             ':rechnungsdatum' => $rechnungsdatum,
-            ':betag' => $betrag,
+            ':betrag' => $betrag,
             ':status' => $status,
             ':bemerkung' => $bemerkung
         ]);
@@ -141,7 +138,6 @@ function createVerrechnung($pdo) {
         sendError(500, 'Insert failed: ' . $e->getMessage());
     }
 }
-
 
 // ============ UPDATE VERRECHNUNG ============
 function updateVerrechnung($pdo) {
@@ -184,7 +180,6 @@ function updateVerrechnung($pdo) {
     }
 }
 
-
 // ============ DELETE VERRECHNUNG ============
 function deleteVerrechnung($pdo) {
     $data = getJsonInput();
@@ -209,5 +204,4 @@ function deleteVerrechnung($pdo) {
         sendError(500, 'Delete failed: ' . $e->getMessage());
     }
 }
-
 ?>

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { API_ENDPOINTS, apiCall } from '../services/api.jsx';
 import './mitarbeiter.css';
 
+
 function Mitarbeiter() {
   // ========== STATE ==========
   const [alleMitarbeiter, setAlleMitarbeiter] = useState([]);
@@ -22,10 +23,12 @@ function Mitarbeiter() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+
   // ========== FETCH MITARBEITER ==========
   useEffect(() => {
     fetchMitarbeiter();
   }, []);
+
 
   const fetchMitarbeiter = async () => {
     try {
@@ -41,19 +44,23 @@ function Mitarbeiter() {
     }
   };
 
+
   // ========== FILTER & SEARCH ==========
   useEffect(() => {
     let gefilterte = alleMitarbeiter;
+
 
     // Rolle Filter - snake_case!
     if (filterRolle !== 'alle') {
       gefilterte = gefilterte.filter(m => m.rolle === filterRolle);
     }
 
+
     // Status Filter - snake_case!
     if (filterStatus !== 'alle') {
       gefilterte = gefilterte.filter(m => m.status === filterStatus);
     }
+
 
     // Suche (nach Name oder Vorname) - snake_case!
     if (suchbegriff) {
@@ -63,8 +70,10 @@ function Mitarbeiter() {
       );
     }
 
+
     setMitarbeiter(gefilterte);
   }, [suchbegriff, filterRolle, filterStatus, alleMitarbeiter]);
+
 
   // ========== FORM HANDLERS ==========
   const handleInputChange = (e) => {
@@ -75,13 +84,16 @@ function Mitarbeiter() {
     }));
   };
 
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
 
     if (!neuerMitarbeiter.Name) {
       setError('Bitte füllen Sie mindestens den Namen aus');
       return;
     }
+
 
     try {
       const payload = {
@@ -93,10 +105,13 @@ function Mitarbeiter() {
         Email: neuerMitarbeiter.Email || ''
       };
 
+
       console.log('Sending payload:', payload);
       await apiCall(API_ENDPOINTS.mitarbeiter, 'POST', payload);
 
+
       await fetchMitarbeiter();
+
 
       setNeuerMitarbeiter({
         Vorname: '',
@@ -114,13 +129,16 @@ function Mitarbeiter() {
     }
   };
 
+
   const handleDelete = async (mitarbeiter_id) => {
     if (!window.confirm('Diesen Mitarbeiter wirklich löschen?')) return;
+
 
     try {
       await apiCall(API_ENDPOINTS.mitarbeiter + '?delete', 'POST', {
         Mitarbeiter_id: mitarbeiter_id
       });
+
 
       await fetchMitarbeiter();
       setError(null);
@@ -130,12 +148,14 @@ function Mitarbeiter() {
     }
   };
 
+
   const handleStatusChange = async (mitarbeiter_id, newStatus) => {
     try {
       await apiCall(API_ENDPOINTS.mitarbeiter + '?update', 'POST', {
         Mitarbeiter_id: mitarbeiter_id,
         Status: newStatus
       });
+
 
       await fetchMitarbeiter();
       setError(null);
@@ -144,6 +164,7 @@ function Mitarbeiter() {
       setError(`Fehler: ${err.message}`);
     }
   };
+
 
   // ========== HELPER FUNCTIONS ==========
   const getRolleLabel = (rolle) => {
@@ -154,6 +175,24 @@ function Mitarbeiter() {
     };
     return rollen[rolle] || rolle;
   };
+
+
+  // Format timestamp to readable date
+  const formatDate = (timestamp) => {
+  if (!timestamp) return '-';
+  const date = new Date(timestamp);
+  
+  // Addiere 1 Stunde hinzu (CET/CEST Offset)
+  date.setHours(date.getHours() + 1);
+  
+  return date.toLocaleDateString('de-CH', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+};
 
   // ========== RENDER ==========
   return (
@@ -170,6 +209,7 @@ function Mitarbeiter() {
             <span className="label">Mitarbeiter</span>
           </div>
         </div>
+
 
         <div className="header-controls">
           <div className="suchleiste">
@@ -205,12 +245,14 @@ function Mitarbeiter() {
         </div>
       </div>
 
+
       {error && (
         <div className="error-banner">
           <span>{error}</span>
           <button onClick={() => setError(null)}>✕</button>
         </div>
       )}
+
 
       {/* NEUER MITARBEITER FORM */}
       {showForm && (
@@ -279,6 +321,7 @@ function Mitarbeiter() {
         </div>
       )}
 
+
       {/* MITARBEITER LISTE */}
       <div className="disposition-timeline">
         {loading ? (
@@ -298,8 +341,10 @@ function Mitarbeiter() {
               <span>Status</span>
               <span>Email</span>
               <span>Telefon</span>
+              <span>Erstellt</span>
               <span></span>
             </div>
+
 
             {mitarbeiter.map(m => (
               <div key={m.mitarbeiter_id} className="dispo-zeile">
@@ -333,6 +378,10 @@ function Mitarbeiter() {
                   <span className="label">Telefon</span>
                   <span className="zeit">{m.telefonnummer || '-'}</span>
                 </div>
+                <div className="dispo-datum">
+                  <span className="label">Erstellt</span>
+                  <span className="datum">{formatDate(m.created_at)}</span>
+                </div>
                 <button
                   className="delete-btn"
                   onClick={() => handleDelete(m.mitarbeiter_id)}
@@ -348,5 +397,6 @@ function Mitarbeiter() {
     </div>
   );
 }
+
 
 export default Mitarbeiter;

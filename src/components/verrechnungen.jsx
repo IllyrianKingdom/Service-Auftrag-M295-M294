@@ -10,6 +10,7 @@ function Verrechnungen() {
   const [alleAuftraege, setAlleAuftraege] = useState([]);
   const [neueRechnung, setNeueRechnung] = useState({
     Auftrag_id: '',
+    Kunden_id: '',
     Rechnungsdatum: '',
     Betrag: '',
     Status: 'offen',
@@ -55,14 +56,16 @@ function Verrechnungen() {
   useEffect(() => {
     let gefilterte = alleVerrechnungen;
 
-    // Status Filter - snake_case!
+    // Status Filter
     if (filterStatus !== 'alle') {
       gefilterte = gefilterte.filter(v => v.status === filterStatus);
     }
 
-    // Suche (nach Kunde oder Auftrag) - snake_case!
+    // Suche (nach Kunde oder Auftrag)
     if (suchbegriff) {
       gefilterte = gefilterte.filter(v =>
+        (v.name && v.name.toLowerCase().includes(suchbegriff.toLowerCase())) ||
+        (v.vorname && v.vorname.toLowerCase().includes(suchbegriff.toLowerCase())) ||
         (v.firma && v.firma.toLowerCase().includes(suchbegriff.toLowerCase())) ||
         (v.auftragsname && v.auftragsname.toLowerCase().includes(suchbegriff.toLowerCase()))
       );
@@ -80,10 +83,21 @@ function Verrechnungen() {
     }));
   };
 
+  const handleAuftragChange = (e) => {
+    const auftrag_id = parseInt(e.target.value);
+    const auftrag = alleAuftraege.find(a => a.auftrag_id === auftrag_id);
+    
+    setNeueRechnung(prev => ({
+      ...prev,
+      Auftrag_id: auftrag_id,
+      Kunden_id: auftrag ? auftrag.kunden_id : ''
+    }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!neueRechnung.Auftrag_id || !neueRechnung.Betrag) {
+    if (!neueRechnung.Auftrag_id || !neueRechnung.Betrag || !neueRechnung.Kunden_id) {
       setError('Bitte füllen Sie alle erforderlichen Felder aus');
       return;
     }
@@ -91,6 +105,7 @@ function Verrechnungen() {
     try {
       const payload = {
         Auftrag_id: parseInt(neueRechnung.Auftrag_id),
+        Kunden_id: parseInt(neueRechnung.Kunden_id),
         Rechnungsdatum: neueRechnung.Rechnungsdatum || new Date().toISOString().split('T')[0],
         Betrag: parseFloat(neueRechnung.Betrag),
         Status: neueRechnung.Status,
@@ -98,11 +113,11 @@ function Verrechnungen() {
       };
 
       await apiCall(API_ENDPOINTS.verrechnung, 'POST', payload);
-
       await fetchVerrechnungen();
 
       setNeueRechnung({
         Auftrag_id: '',
+        Kunden_id: '',
         Rechnungsdatum: '',
         Betrag: '',
         Status: 'offen',
@@ -148,15 +163,14 @@ function Verrechnungen() {
   };
 
   // ========== HELPER FUNCTIONS ==========
-  const getAuftragInfo = (auftrag_id) => {
-    const auftrag = alleAuftraege.find(a => a.auftrag_id === auftrag_id);
-    return auftrag ? { 
-      auftragsname: auftrag.auftragsname,
-      firma: auftrag.firma || 'Unbekannt'
-    } : { 
-      auftragsname: 'Unbekannt',
-      firma: 'Unbekannt'
-    };
+  const getKundeDisplayName = (vorname, name) => {
+    if (vorname && name) return `${vorname} ${name}`;
+    if (name) return name;
+    return 'Unbekannt';
+  };
+
+  const getKundeInitial = (vorname) => {
+    return vorname ? vorname.charAt(0).toUpperCase() : '?';
   };
 
   const formatDate = (dateString) => {
@@ -192,7 +206,7 @@ function Verrechnungen() {
           <div className="suchleiste">
             <input
               type="text"
-              placeholder="Verrechnungen suchen..."
+              placeholder="Nach Kunde oder Auftrag suchen..."
               value={suchbegriff}
               onChange={(e) => setSuchbegriff(e.target.value)}
             />
@@ -230,7 +244,7 @@ function Verrechnungen() {
               <select
                 name="Auftrag_id"
                 value={neueRechnung.Auftrag_id}
-                onChange={handleInputChange}
+                onChange={handleAuftragChange}
                 required
               >
                 <option value="">-- Auftrag wählen --</option>
@@ -300,63 +314,60 @@ function Verrechnungen() {
         ) : (
           <>
             <div className='timeline-header'>
-            <div className="kunde-header">
-              <span>Kunde</span>
-            </div>
-            <div className="auftrag-header">
-              <span>Auftrag</span>
-            </div>
+              <div className="kunde-header">
+                <span>Kunde</span>
+              </div>
+              <div className="auftrag-header">
+                <span>Auftrag</span>
+              </div>
               <div className="status-header">
-              <span>Status</span>
-               </div>
+                <span>Status</span>
+              </div>
               <div className="betrag-header">
-              <span>Betrag</span>
+                <span>Betrag</span>
               </div>
               <div className="datum-header">
-              <span>Rechnungsdatum</span>
+                <span>Rechnungsdatum</span>
               </div>
               <span></span>
-              </div>
+            </div>
 
-            {verrechnungen.map(v => {
-              const auftragInfo = getAuftragInfo(v.auftrag_id);
-              return (
-                <div key={v.verrechnung_id} className="verr-zeile">
-                  <div className="verr-kunde">
-                    <div className="avatar">{auftragInfo.firma.charAt(0)}</div>
-                    <span>{auftragInfo.firma}</span>
-                  </div>
-                  <div className="verr-auftrag">
-                    <h4>{auftragInfo.auftragsname}</h4>
-                    {v.bemerkung && <small>{v.bemerkung}</small>}
-                  </div>
-                  <div className="verr-status">
-                    <select
-                      className={`status-select status-${v.status}`}
-                      value={v.status}
-                      onChange={(e) => handleStatusChange(v.verrechnung_id, e.target.value)}
-                    >
-                      <option value="offen">Offen</option>
-                      <option value="bezahlt">Bezahlt</option>
-                      <option value="überfällig">Überfällig</option>
-                    </select>
-                  </div>
-                  <div className="verr-betrag">
-                    <strong>{formatCurrency(v.betrag)}</strong>
-                  </div>
-                  <div className="verr-datum">
-                    {formatDate(v.rechnungsdatum)}
-                  </div>
-                  <button
-                    className="delete-btn"
-                    onClick={() => handleDelete(v.verrechnung_id)}
-                    title="Löschen"
-                  >
-                    ×
-                  </button>
+            {verrechnungen.map(v => (
+              <div key={v.verrechnung_id} className="verr-zeile">
+                <div className="verr-kunde">
+                  <div className="avatar">{getKundeInitial(v.vorname)}</div>
+                  <span>{getKundeDisplayName(v.vorname, v.name)}</span>
                 </div>
-              );
-            })}
+                <div className="verr-auftrag">
+                  <h4>{v.auftragsname || 'Unbekannt'}</h4>
+                  {v.bemerkung && <small>{v.bemerkung}</small>}
+                </div>
+                <div className="verr-status">
+                  <select
+                    className={`status-select status-${v.status}`}
+                    value={v.status}
+                    onChange={(e) => handleStatusChange(v.verrechnung_id, e.target.value)}
+                  >
+                    <option value="offen">Offen</option>
+                    <option value="bezahlt">Bezahlt</option>
+                    <option value="überfällig">Überfällig</option>
+                  </select>
+                </div>
+                <div className="verr-betrag">
+                  <strong>{formatCurrency(v.betrag)}</strong>
+                </div>
+                <div className="verr-datum">
+                  {formatDate(v.rechnungsdatum)}
+                </div>
+                <button
+                  className="delete-btn"
+                  onClick={() => handleDelete(v.verrechnung_id)}
+                  title="Löschen"
+                >
+                  ×
+                </button>
+              </div>
+            ))}
           </>
         )}
       </div>

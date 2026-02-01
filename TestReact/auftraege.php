@@ -2,11 +2,13 @@
 session_start();
 require_once 'config.php';
 
+
 // ============ ERROR HANDLING ============
 error_reporting(E_ALL);
 ini_set('display_errors', 0);
 ini_set('log_errors', 1);
 ini_set('error_log', '/var/log/php_errors.log');
+
 
 // ============ HELPER FUNCTIONS ============
 function getJsonInput() {
@@ -17,6 +19,7 @@ function getJsonInput() {
     return json_decode($input, true) ?? [];
 }
 
+
 function sendError($code, $message) {
     http_response_code($code);
     echo json_encode([
@@ -25,6 +28,7 @@ function sendError($code, $message) {
     ]);
     exit();
 }
+
 
 function sendSuccess($data = [], $message = 'Success') {
     http_response_code(200);
@@ -36,6 +40,7 @@ function sendSuccess($data = [], $message = 'Success') {
     exit();
 }
 
+
 function sendCreated($id, $message = 'Created') {
     http_response_code(201);
     echo json_encode([
@@ -46,10 +51,24 @@ function sendCreated($id, $message = 'Created') {
     exit();
 }
 
+
+// ============ GET CURRENT USER ID ============
+function getCurrentUserId() {
+    // Wenn du ein Session-System hast, nutze das
+    // Beispiel (du musst das an dein Auth-System anpassen):
+    if (isset($_SESSION['mitarbeiter_id'])) {
+        return (int)$_SESSION['mitarbeiter_id'];
+    }
+    // Fallback (sollte später entfernt werden!)
+    return 1;
+}
+
+
 // ============ MAIN ROUTER ============
 try {
     $conn = getDBConnection();
     $method = $_SERVER['REQUEST_METHOD'];
+
 
     if ($method === 'GET') {
         getAllAuftraege($conn);
@@ -73,7 +92,8 @@ try {
     }
 }
 
-// ============ GET ALL AUFTRAEGE ============
+
+// ============ GET ALL AUFTRAEGE (MIT KUNDE JOIN) ============
 function getAllAuftraege($pdo) {
     $query = "
         SELECT
@@ -84,8 +104,12 @@ function getAllAuftraege($pdo) {
             a.status,
             a.erfasst_am,
             a.erfasst_von,
-            a.kunden_id
+            a.kunden_id,
+            k.firma,
+            k.vorname,
+            k.name
         FROM auftraege a
+        LEFT JOIN Kunde k ON a.kunden_id = k.kunden_id
         ORDER BY a.angefangen_am DESC
     ";
     
@@ -102,6 +126,7 @@ function getAllAuftraege($pdo) {
 }
 
 
+
 // ============ CREATE AUFTRAG ============
 function createAuftrag($conn) {
     $data = getJsonInput();
@@ -116,7 +141,29 @@ function createAuftrag($conn) {
         $kunden_id = (int)$data['Kunden_id'];
         $status = $data['Status'] ?? 'erfasst';
         $angefangen_am = $data['Angefangen_am'] ?? date('Y-m-d');
-        $erfasst_von = (int)($data['Erfasst_von'] ?? 1);
+        $erfasst_von = getCurrentUserId();  // ← Aus Session statt hardcodiert
+        
+        // Validiere Status Enum
+        $validStatuses = ['erfasst', 'disponiert', 'ausgeführt', 'freigegeben', 'verrechnet'];
+        if (!in_array($status, $validStatuses)) {
+            sendError(400, 'Invalid status value');
+        }
+        
+        // Validiere Kunde existiert
+        $kundeCheck = $conn->prepare("SELECT kunden_id FROM Kunde WHERE kunden_id = :kunden_id");
+        $kundeCheck->bindParam(':kunden_id', $kunden_id, PDO::PARAM_INT);
+        $kundeCheck->execute();
+        if ($kundeCheck->rowCount() === 0) {
+            sendError(404, 'Kunde not found');
+        }
+        
+        // Validiere Mitarbeiter existiert
+        $mitarbeiterCheck = $conn->prepare("SELECT mitarbeiter_id FROM Mitarbeiter WHERE mitarbeiter_id = :mitarbeiter_id");
+        $mitarbeiterCheck->bindParam(':mitarbeiter_id', $erfasst_von, PDO::PARAM_INT);
+        $mitarbeiterCheck->execute();
+        if ($mitarbeiterCheck->rowCount() === 0) {
+            sendError(404, 'Mitarbeiter not found');
+        }
         
         $stmt = $conn->prepare("
             INSERT INTO auftraege
@@ -143,6 +190,7 @@ function createAuftrag($conn) {
     }
 }
 
+
 // ============ UPDATE AUFTRAG ============
 function updateAuftrag($conn) {
     $data = getJsonInput();
@@ -156,9 +204,23 @@ function updateAuftrag($conn) {
         $status = trim($data['Status']);
         $erledigt_am = !empty($data['Erledigt_am']) ? $data['Erledigt_am'] : null;
         
+        // Validiere Status Enum
+        $validStatuses = ['erfasst', 'disponiert', 'ausgeführt', 'freigegeben', 'verrechnet'];
+        if (!in_array($status, $validStatuses)) {
+            sendError(400, 'Invalid status value');
+        }
+        
+        // Validiere Auftrag existiert
+        $auftragCheck = $conn->prepare("SELECT auftrag_id FROM Auftraege WHERE auftrag_id = :auftrag_id");
+        $auftragCheck->bindParam(':auftrag_id', $auftrag_id, PDO::PARAM_INT);
+        $auftragCheck->execute();
+        if ($auftragCheck->rowCount() === 0) {
+            sendError(404, 'Auftrag not found');
+        }
+        
         $stmt = $conn->prepare("
             UPDATE auftraege
-            SET status = :status, erledigt_am = :erledigt_am
+            SET status = :status, erledigt_am = :erledigt_am, updated_at = NOW()
             WHERE auftrag_id = :auftrag_id
         ");
         
@@ -170,15 +232,12 @@ function updateAuftrag($conn) {
             sendError(500, 'Execute failed: ' . implode(', ', $stmt->errorInfo()));
         }
         
-        if ($stmt->rowCount() === 0) {
-            sendError(404, 'Auftrag not found');
-        }
-        
         sendSuccess([], 'Auftrag updated successfully');
     } catch (PDOException $e) {
         sendError(500, 'Update failed: ' . $e->getMessage());
     }
 }
+
 
 // ============ DELETE AUFTRAG ============
 function deleteAuftrag($conn) {
@@ -190,15 +249,20 @@ function deleteAuftrag($conn) {
     
     try {
         $auftrag_id = (int)$data['Auftrag_id'];
+        
+        // Validiere Auftrag existiert
+        $auftragCheck = $conn->prepare("SELECT auftrag_id FROM Auftraege WHERE auftrag_id = :auftrag_id");
+        $auftragCheck->bindParam(':auftrag_id', $auftrag_id, PDO::PARAM_INT);
+        $auftragCheck->execute();
+        if ($auftragCheck->rowCount() === 0) {
+            sendError(404, 'Auftrag not found');
+        }
+        
         $stmt = $conn->prepare("DELETE FROM auftraege WHERE auftrag_id = :auftrag_id");
         $stmt->bindParam(':auftrag_id', $auftrag_id, PDO::PARAM_INT);
         
         if (!$stmt->execute()) {
             sendError(500, 'Execute failed: ' . implode(', ', $stmt->errorInfo()));
-        }
-        
-        if ($stmt->rowCount() === 0) {
-            sendError(404, 'Auftrag not found');
         }
         
         sendSuccess([], 'Auftrag deleted successfully');

@@ -3,12 +3,13 @@ import { Link } from 'react-router-dom';
 import { API_ENDPOINTS, apiCall } from '../services/api.jsx';
 import './auftraege.css';
 
+
 // ========== CUSTOM HOOKS ==========
 const useAuftraegeData = () => {
   const [alleAuftraege, setAlleAuftraege] = useState([]);
-  const [alleKunden, setAlleKunden] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
 
   const fetchAuftraege = async () => {
     try {
@@ -24,58 +25,60 @@ const useAuftraegeData = () => {
     }
   };
 
-  const fetchKunden = async () => {
-    try {
-      const response = await apiCall(API_ENDPOINTS.kunden);
-      setAlleKunden(response);
-    } catch (err) {
-      console.error('Failed to fetch kunden:', err);
-      setError('Kunden konnten nicht geladen werden');
-    }
-  };
 
   useEffect(() => {
     fetchAuftraege();
-    fetchKunden();
   }, []);
 
-  return { alleAuftraege, alleKunden, loading, error, setError, fetchAuftraege };
+
+  return { alleAuftraege, loading, error, setError, fetchAuftraege };
 };
+
 
 const useFilteredAuftraege = (alleAuftraege, suchbegriff, filterStatus) => {
   const [auftraege, setAuftraege] = useState([]);
 
+
   useEffect(() => {
     let gefilterte = alleAuftraege;
+
 
     if (filterStatus !== 'alle') {
       gefilterte = gefilterte.filter(a => a.status === filterStatus);
     }
 
+
     if (suchbegriff) {
+      const suchLower = suchbegriff.toLowerCase();
       gefilterte = gefilterte.filter(a =>
-        (a.firma?.toLowerCase().includes(suchbegriff.toLowerCase())) ||
-        a.auftragsname.toLowerCase().includes(suchbegriff.toLowerCase())
+        a.auftragsname.toLowerCase().includes(suchLower) ||
+        a.firma?.toLowerCase().includes(suchLower) ||
+        `${a.vorname} ${a.name}`.toLowerCase().includes(suchLower)
       );
     }
 
+
     setAuftraege(gefilterte);
   }, [suchbegriff, filterStatus, alleAuftraege]);
+
 
   return auftraege;
 };
 
 
-const getKundenName = (kunden_id, alleKunden) => {
-  const kunde = alleKunden.find(k => k.kunden_id === kunden_id);
-  return kunde ? (kunde.firma || `${kunde.vorname} ${kunde.name}`) : 'Unbekannt';
+const getKundenName = (auftrag) => {
+  // Priorität: Firma > Vorname + Name
+  if (auftrag.firma) {
+    return `${auftrag.firma} (${auftrag.vorname} ${auftrag.name})`.trim();
+  }
+  return `${auftrag.vorname} ${auftrag.name}`.trim();
 };
 
- const formatDate = (dateString) => {
+const formatDate = (dateString) => {
   if (!dateString) return '';
   try {
-    const date = new Date(dateString + 'T00:00:00Z');  // Z = UTC, verhindert Zeitzonen-Probleme
-    if (isNaN(date.getTime())) return dateString;      // Fallback
+    const date = new Date(dateString + 'T00:00:00Z');
+    if (isNaN(date.getTime())) return dateString;
     return date.toLocaleDateString('de-CH', { 
       month: '2-digit', 
       day: '2-digit', 
@@ -86,12 +89,14 @@ const getKundenName = (kunden_id, alleKunden) => {
   }
 };
 
+
 const createEmptyAuftrag = () => ({
   Kunden_id: '',
   Auftragsname: '',
   Status: 'erfasst',
   Angefangen_am: ''
 });
+
 
 // ========== SUB-COMPONENTS ==========
 const AuftraegeHeader = ({ count, suchbegriff, setSuchbegriff, filterStatus, setFilterStatus, showForm, setShowForm }) => (
@@ -104,6 +109,7 @@ const AuftraegeHeader = ({ count, suchbegriff, setSuchbegriff, filterStatus, set
         <span className="label">Übersicht</span>
       </div>
     </div>
+
 
     <div className="header-controls">
       <div className="suchleiste">
@@ -131,6 +137,7 @@ const AuftraegeHeader = ({ count, suchbegriff, setSuchbegriff, filterStatus, set
   </div>
 );
 
+
 const ErrorBanner = ({ error, onClose }) => (
   error && (
     <div className="error-banner">
@@ -140,59 +147,84 @@ const ErrorBanner = ({ error, onClose }) => (
   )
 );
 
-const AuftraegeFormComponent = ({ neuerAuftrag, setNeuerAuftrag, alleKunden, onSubmit }) => (
-  <div className="auftrag-form-container">
-    <form className="auftrag-form" onSubmit={onSubmit}>
-      <div className="form-row">
-        <select
-          name="Kunden_id"
-          value={neuerAuftrag.Kunden_id}
-          onChange={(e) => setNeuerAuftrag(prev => ({ ...prev, Kunden_id: e.target.value }))}
-          className="custom-select"
-          required
-        >
-          <option value="">-- Kunde wählen --</option>
-          {alleKunden.map(kunde => (
-            <option key={kunde.kunden_id} value={kunde.kunden_id}>
-              {kunde.firma || `${kunde.vorname} ${kunde.name}`}
-            </option>
-          ))}
-        </select>
-        <input
-          name="Auftragsname"
-          placeholder="Auftragsname"
-          value={neuerAuftrag.Auftragsname}
-          onChange={(e) => setNeuerAuftrag(prev => ({ ...prev, Auftragsname: e.target.value }))}
-          required
-        />
-        <select
-          name="Status"
-          value={neuerAuftrag.Status}
-          onChange={(e) => setNeuerAuftrag(prev => ({ ...prev, Status: e.target.value }))}
-          className="custom-select"
-        >
-          <option value="erfasst">Erfasst</option>
-          <option value="disponiert">Disponiert</option>
-          <option value="ausgeführt">Ausgeführt</option>
-          <option value="freigegeben">Freigegeben</option>
-          <option value="verrechnet">Verrechnet</option>
-        </select>
-        <input
-      name="Angefangen_am"
-      type="date"
-      value={neuerAuftrag.Angefangen_am}
-      onChange={(e) => setNeuerAuftrag(prev => ({ ...prev, Angefangen_am: e.target.value }))}
-        />
-      </div>
-      <button type="submit">Auftrag erstellen</button>
-    </form>
-  </div>
-);
 
-const AuftragKarte = ({ auftrag, kundenName, onDelete, onStatusChange }) => (
+const AuftraegeFormComponent = ({ neuerAuftrag, setNeuerAuftrag, alleAuftraege, onSubmit }) => {
+  // Extrahiere unique Kunden aus auftraege
+  const kundenMap = new Map();
+  alleAuftraege.forEach(a => {
+    if (a.kunden_id && !kundenMap.has(a.kunden_id)) {
+      kundenMap.set(a.kunden_id, {
+        kunden_id: a.kunden_id,
+        firma: a.firma,
+        vorname: a.vorname,
+        name: a.name
+      });
+    }
+  });
+  const kunden = Array.from(kundenMap.values());
+
+  // ← NEUE HELPER FUNKTION
+  const getKundenDisplayName = (kunde) => {
+    if (kunde.firma) {
+      return `${kunde.firma} (${kunde.vorname} ${kunde.name})`.trim();
+    }
+    return `${kunde.vorname} ${kunde.name}`.trim();
+  };
+
+  return (
+    <div className="auftrag-form-container">
+      <form className="auftrag-form" onSubmit={onSubmit}>
+        <div className="form-row">
+          <select
+            name="Kunden_id"
+            value={neuerAuftrag.Kunden_id}
+            onChange={(e) => setNeuerAuftrag(prev => ({ ...prev, Kunden_id: e.target.value }))}
+            className="custom-select"
+            required
+          >
+            <option value="">-- Kunde wählen --</option>
+            {kunden.map(kunde => (
+              <option key={kunde.kunden_id} value={kunde.kunden_id}>
+                {getKundenDisplayName(kunde)}  {/* ← HIER NUTZEN */}
+              </option>
+            ))}
+          </select>
+          <input
+            name="Auftragsname"
+            placeholder="Auftragsname"
+            value={neuerAuftrag.Auftragsname}
+            onChange={(e) => setNeuerAuftrag(prev => ({ ...prev, Auftragsname: e.target.value }))}
+            required
+          />
+          <select
+            name="Status"
+            value={neuerAuftrag.Status}
+            onChange={(e) => setNeuerAuftrag(prev => ({ ...prev, Status: e.target.value }))}
+            className="custom-select"
+          >
+            <option value="erfasst">Erfasst</option>
+            <option value="disponiert">Disponiert</option>
+            <option value="ausgeführt">Ausgeführt</option>
+            <option value="freigegeben">Freigegeben</option>
+            <option value="verrechnet">Verrechnet</option>
+          </select>
+          <input
+            name="Angefangen_am"
+            type="date"
+            value={neuerAuftrag.Angefangen_am}
+            onChange={(e) => setNeuerAuftrag(prev => ({ ...prev, Angefangen_am: e.target.value }))}
+          />
+        </div>
+        <button type="submit">Auftrag erstellen</button>
+      </form>
+    </div>
+  );
+};
+
+const AuftragKarte = ({ auftrag, onDelete, onStatusChange }) => (
   <div className="auftrag-karte">
     <div className="karte-header">
-      <h3>{kundenName}</h3>
+      <h3>{auftrag.auftragsname}</h3>
       <button
         className="delete-btn"
         onClick={() => onDelete(auftrag.auftrag_id)}
@@ -202,7 +234,7 @@ const AuftragKarte = ({ auftrag, kundenName, onDelete, onStatusChange }) => (
       </button>
     </div>
     <div className="karte-body">
-      <p>{auftrag.auftragsname}</p>
+      <p className="kundenname">{getKundenName(auftrag)}</p>
       <div className="karte-footer">
         <select
           className={`status-select status-${auftrag.status}`}
@@ -221,7 +253,8 @@ const AuftragKarte = ({ auftrag, kundenName, onDelete, onStatusChange }) => (
   </div>
 );
 
-const AuftraegeGrid = ({ auftraege, alleKunden, loading, onDelete, onStatusChange }) => (
+
+const AuftraegeGrid = ({ auftraege, loading, onDelete, onStatusChange }) => (
   <div className="auftraege-karten">
     {loading ? (
       <div className="empty-state">
@@ -237,7 +270,6 @@ const AuftraegeGrid = ({ auftraege, alleKunden, loading, onDelete, onStatusChang
         <AuftragKarte
           key={auftrag.auftrag_id}
           auftrag={auftrag}
-          kundenName={getKundenName(auftrag.kunden_id, alleKunden)}
           onDelete={onDelete}
           onStatusChange={onStatusChange}
         />
@@ -246,33 +278,37 @@ const AuftraegeGrid = ({ auftraege, alleKunden, loading, onDelete, onStatusChang
   </div>
 );
 
+
 // ========== MAIN COMPONENT ==========
 function Auftraege() {
   // States
-  const { alleAuftraege, alleKunden, loading, error, setError, fetchAuftraege } = useAuftraegeData();
+  const { alleAuftraege, loading, error, setError, fetchAuftraege } = useAuftraegeData();
   const [suchbegriff, setSuchbegriff] = useState('');
   const [filterStatus, setFilterStatus] = useState('alle');
   const [showForm, setShowForm] = useState(false);
   const [neuerAuftrag, setNeuerAuftrag] = useState(createEmptyAuftrag());
   const auftraege = useFilteredAuftraege(alleAuftraege, suchbegriff, filterStatus);
 
+
   // Handlers
   const handleSubmit = async (e) => {
     e.preventDefault();
+
 
     if (!neuerAuftrag.Kunden_id || !neuerAuftrag.Auftragsname) {
       setError('Bitte füllen Sie alle erforderlichen Felder aus');
       return;
     }
 
+
     try {
       const payload = {
         Kunden_id: parseInt(neuerAuftrag.Kunden_id),
         Auftragsname: neuerAuftrag.Auftragsname,
         Status: neuerAuftrag.Status,
-        Angefangen_am: neuerAuftrag.Angefangen_am || new Date().toISOString().split('T')[0],
-        Erfasst_von: 1
+        Angefangen_am: neuerAuftrag.Angefangen_am || new Date().toISOString().split('T')[0]
       };
+
 
       await apiCall(API_ENDPOINTS.auftraege, 'POST', payload);
       await fetchAuftraege();
@@ -285,8 +321,10 @@ function Auftraege() {
     }
   };
 
+
   const handleDelete = async (auftrag_id) => {
     if (!window.confirm('Diesen Auftrag wirklich löschen?')) return;
+
 
     try {
       await apiCall(API_ENDPOINTS.auftraege + '?delete', 'POST', {
@@ -300,22 +338,24 @@ function Auftraege() {
     }
   };
 
+
   const handleStatusChange = async (auftrag_id, newStatus) => {
-  try {
-    const payload = {
-      Auftrag_id: auftrag_id,
-      Status: newStatus,
-      Erledigt_am: (newStatus === 'verrechnet') ? new Date().toISOString().split('T')[0] : null
-    };
-    
-    await apiCall(API_ENDPOINTS.auftraege + '?update', 'POST', payload);
-    await fetchAuftraege();
-    setError(null);
-  } catch (err) {
-    console.error('Failed to update status:', err);
-    setError(`Fehler: ${err.message}`);
-  }
-};
+    try {
+      const payload = {
+        Auftrag_id: auftrag_id,
+        Status: newStatus,
+        Erledigt_am: (newStatus === 'verrechnet') ? new Date().toISOString().split('T')[0] : null
+      };
+      
+      await apiCall(API_ENDPOINTS.auftraege + '?update', 'POST', payload);
+      await fetchAuftraege();
+      setError(null);
+    } catch (err) {
+      console.error('Failed to update status:', err);
+      setError(`Fehler: ${err.message}`);
+    }
+  };
+
 
   return (
     <div className="auftraege-fullscreen">
@@ -329,20 +369,22 @@ function Auftraege() {
         setShowForm={setShowForm}
       />
 
+
       <ErrorBanner error={error} onClose={() => setError(null)} />
+
 
       {showForm && (
         <AuftraegeFormComponent
           neuerAuftrag={neuerAuftrag}
           setNeuerAuftrag={setNeuerAuftrag}
-          alleKunden={alleKunden}
+          alleAuftraege={alleAuftraege}
           onSubmit={handleSubmit}
         />
       )}
 
+
       <AuftraegeGrid
         auftraege={auftraege}
-        alleKunden={alleKunden}
         loading={loading}
         onDelete={handleDelete}
         onStatusChange={handleStatusChange}
@@ -350,5 +392,6 @@ function Auftraege() {
     </div>
   );
 }
+
 
 export default Auftraege;

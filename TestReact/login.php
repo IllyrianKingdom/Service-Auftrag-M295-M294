@@ -10,7 +10,7 @@ header('Content-Type: application/json');
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
-    die(json_encode(['success' => false, 'error' => 'Method not allowed']));
+    die(json_encode(['success' => false, 'error' => 'Ungültige Anfragemethode']));
 }
 
 // JSON Input parsen
@@ -18,7 +18,7 @@ $input = json_decode(file_get_contents('php://input'), true);
 
 if (!isset($input['email']) || !isset($input['password'])) {
     http_response_code(400);
-    die(json_encode(['success' => false, 'error' => 'Email and password required']));
+    die(json_encode(['success' => false, 'error' => 'E-Mail und Passwort sind erforderlich']));
 }
 
 $email = trim($input['email']);
@@ -27,12 +27,12 @@ $password = $input['password'];
 // Validierung
 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
     http_response_code(400);
-    die(json_encode(['success' => false, 'error' => 'Invalid email format']));
+    die(json_encode(['success' => false, 'error' => 'Die E-Mail-Adresse ist ungültig']));
 }
 
 if (strlen($password) === 0) {
     http_response_code(400);
-    die(json_encode(['success' => false, 'error' => 'Password cannot be empty']));
+    die(json_encode(['success' => false, 'error' => 'Das Passwort darf nicht leer sein']));
 }
 
 try {
@@ -43,15 +43,10 @@ try {
     $stmt->execute([':email' => $email]);
     $user = $stmt->fetch();
     
-    if (!$user) {
+    if (!$user || !password_verify($password, $user['password_hash'])) {
+        // Gleiche Meldung für beide Fälle (Security - verhindert User Enumeration)
         http_response_code(401);
-        die(json_encode(['success' => false, 'error' => 'Invalid email or password']));
-    }
-    
-    // Passwort mit Hash vergleichen
-    if (!password_verify($password, $user['password_hash'])) {
-        http_response_code(401);
-        die(json_encode(['success' => false, 'error' => 'Invalid email or password']));
+        die(json_encode(['success' => false, 'error' => 'E-Mail oder Passwort ist ungültig']));
     }
     
     // Session Daten speichern
@@ -74,7 +69,7 @@ try {
     http_response_code(200);
     die(json_encode([
         'success' => true,
-        'message' => 'Login successful',
+        'message' => 'Login erfolgreich',
         'user' => [
             'id' => $user['id'],
             'email' => $user['email'],
@@ -85,6 +80,11 @@ try {
     
 } catch (Exception $e) {
     http_response_code(500);
-    die(json_encode(['success' => false, 'error' => 'Server error', 'debug' => $e->getMessage()]));
+    die(json_encode([
+        'success' => false,
+        'error' => 'Ein Serverfehler ist aufgetreten. Bitte versuche es später erneut.'
+        // Nur in Entwicklung:
+        // 'debug' => $e->getMessage()
+    ]));
 }
 ?>
