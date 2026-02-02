@@ -1,5 +1,6 @@
 <?php
-header('Content-Type: application/json');
+session_start();
+header('Content-Type: application/json; charset=utf-8');  // charset HINZUFÜGEN!
 require_once 'config.php';
 
 // ============ ERROR HANDLING ============

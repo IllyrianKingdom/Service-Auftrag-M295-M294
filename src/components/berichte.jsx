@@ -622,7 +622,7 @@ const handlePdfExport = async () => {
           <div className="berichte-filter">
             <select value={filterTyp} onChange={(e) => setFilterTyp(e.target.value)}>
               <option value="alle">Alle Kategorien</option>
-              <option value="Aufträge">Aufträge</option>
+              <option value="Auftraege">Auftraege</option>
               <option value="Disposition">Disposition</option>
               <option value="Finanzen">Finanzen</option>
             </select>
@@ -855,7 +855,7 @@ const handlePdfExport = async () => {
               >
                 <div className="bericht-header-row">
                   <span className={`typ-badge typ-${bericht.typ?.toLowerCase()}`}>
-                    {bericht.typ || 'Aufträge'}
+                    {bericht.typ || 'Auftraege'}
                   </span>
                   {bericht.freigegeben && <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-success)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>✓ Freigegeben</span>}
                   <span className="bericht-anzahl">{bericht.arbeitszeit}h</span>
@@ -896,7 +896,7 @@ const handlePdfExport = async () => {
                   <h2>{selectedBericht.titel}</h2>
                   <div style={{ display: 'flex', gap: 'var(--space-8)', alignItems: 'flex-start' }}>
                     <span className={`typ-badge typ-${selectedBericht.typ?.toLowerCase()} large`}>
-                      {selectedBericht.typ || 'Aufträge'}
+                      {selectedBericht.typ || 'Auftraege'}
                     </span>
                   </div>
                 </div>

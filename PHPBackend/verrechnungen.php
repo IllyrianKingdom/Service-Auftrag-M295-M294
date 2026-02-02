@@ -1,4 +1,6 @@
 <?php
+session_start();
+header('Content-Type: application/json; charset=utf-8');  // charset HINZ
 require_once 'config.php';
 
 // ============ HELPER FUNCTIONS ============
