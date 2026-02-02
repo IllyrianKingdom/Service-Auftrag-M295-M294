@@ -4,11 +4,13 @@ import { API_ENDPOINTS, apiCall } from '../services/api.jsx';
 import './auftraege.css';
 
 
+
 // ========== CUSTOM HOOKS ==========
 const useAuftraegeData = () => {
   const [alleAuftraege, setAlleAuftraege] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
 
 
   const fetchAuftraege = async () => {
@@ -26,26 +28,60 @@ const useAuftraegeData = () => {
   };
 
 
+
   useEffect(() => {
     fetchAuftraege();
   }, []);
+
 
 
   return { alleAuftraege, loading, error, setError, fetchAuftraege };
 };
 
 
+
+const useAlleKunden = () => {
+  const [kunden, setKunden] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchKunden = async () => {
+      try {
+        setLoading(true);
+        const response = await apiCall(API_ENDPOINTS.kunden);
+        setKunden(response);
+        setError(null);
+      } catch (err) {
+        console.error('Failed to fetch kunden:', err);
+        setError('Kunden konnten nicht geladen werden');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchKunden();
+  }, []);
+
+  return { kunden, loading, error };
+};
+
+
+
 const useFilteredAuftraege = (alleAuftraege, suchbegriff, filterStatus) => {
   const [auftraege, setAuftraege] = useState([]);
+
 
 
   useEffect(() => {
     let gefilterte = alleAuftraege;
 
 
+
     if (filterStatus !== 'alle') {
       gefilterte = gefilterte.filter(a => a.status === filterStatus);
     }
+
 
 
     if (suchbegriff) {
@@ -58,12 +94,15 @@ const useFilteredAuftraege = (alleAuftraege, suchbegriff, filterStatus) => {
     }
 
 
+
     setAuftraege(gefilterte);
   }, [suchbegriff, filterStatus, alleAuftraege]);
 
 
+
   return auftraege;
 };
+
 
 
 const getKundenName = (auftrag) => {
@@ -73,6 +112,7 @@ const getKundenName = (auftrag) => {
   }
   return `${auftrag.vorname} ${auftrag.name}`.trim();
 };
+
 
 const formatDate = (dateString) => {
   if (!dateString) return '';
@@ -90,12 +130,14 @@ const formatDate = (dateString) => {
 };
 
 
+
 const createEmptyAuftrag = () => ({
   Kunden_id: '',
   Auftragsname: '',
   Status: 'erfasst',
   Angefangen_am: ''
 });
+
 
 
 // ========== SUB-COMPONENTS ==========
@@ -109,6 +151,7 @@ const AuftraegeHeader = ({ count, suchbegriff, setSuchbegriff, filterStatus, set
         <span className="label">Übersicht</span>
       </div>
     </div>
+
 
 
     <div className="header-controls">
@@ -138,6 +181,7 @@ const AuftraegeHeader = ({ count, suchbegriff, setSuchbegriff, filterStatus, set
 );
 
 
+
 const ErrorBanner = ({ error, onClose }) => (
   error && (
     <div className="error-banner">
@@ -148,22 +192,8 @@ const ErrorBanner = ({ error, onClose }) => (
 );
 
 
-const AuftraegeFormComponent = ({ neuerAuftrag, setNeuerAuftrag, alleAuftraege, onSubmit }) => {
-  // Extrahiere unique Kunden aus auftraege
-  const kundenMap = new Map();
-  alleAuftraege.forEach(a => {
-    if (a.kunden_id && !kundenMap.has(a.kunden_id)) {
-      kundenMap.set(a.kunden_id, {
-        kunden_id: a.kunden_id,
-        firma: a.firma,
-        vorname: a.vorname,
-        name: a.name
-      });
-    }
-  });
-  const kunden = Array.from(kundenMap.values());
 
-  // ← NEUE HELPER FUNKTION
+const AuftraegeFormComponent = ({ neuerAuftrag, setNeuerAuftrag, alleKunden, onSubmit }) => {
   const getKundenDisplayName = (kunde) => {
     if (kunde.firma) {
       return `${kunde.firma} (${kunde.vorname} ${kunde.name})`.trim();
@@ -183,9 +213,9 @@ const AuftraegeFormComponent = ({ neuerAuftrag, setNeuerAuftrag, alleAuftraege, 
             required
           >
             <option value="">-- Kunde wählen --</option>
-            {kunden.map(kunde => (
+            {alleKunden.map(kunde => (
               <option key={kunde.kunden_id} value={kunde.kunden_id}>
-                {getKundenDisplayName(kunde)}  {/* ← HIER NUTZEN */}
+                {getKundenDisplayName(kunde)}
               </option>
             ))}
           </select>
@@ -221,6 +251,7 @@ const AuftraegeFormComponent = ({ neuerAuftrag, setNeuerAuftrag, alleAuftraege, 
   );
 };
 
+
 const AuftragKarte = ({ auftrag, onDelete, onStatusChange }) => (
   <div className="auftrag-karte">
     <div className="karte-header">
@@ -254,6 +285,7 @@ const AuftragKarte = ({ auftrag, onDelete, onStatusChange }) => (
 );
 
 
+
 const AuftraegeGrid = ({ auftraege, loading, onDelete, onStatusChange }) => (
   <div className="auftraege-karten">
     {loading ? (
@@ -279,10 +311,12 @@ const AuftraegeGrid = ({ auftraege, loading, onDelete, onStatusChange }) => (
 );
 
 
+
 // ========== MAIN COMPONENT ==========
 function Auftraege() {
   // States
   const { alleAuftraege, loading, error, setError, fetchAuftraege } = useAuftraegeData();
+  const { kunden: alleKunden } = useAlleKunden();
   const [suchbegriff, setSuchbegriff] = useState('');
   const [filterStatus, setFilterStatus] = useState('alle');
   const [showForm, setShowForm] = useState(false);
@@ -290,15 +324,18 @@ function Auftraege() {
   const auftraege = useFilteredAuftraege(alleAuftraege, suchbegriff, filterStatus);
 
 
+
   // Handlers
   const handleSubmit = async (e) => {
     e.preventDefault();
+
 
 
     if (!neuerAuftrag.Kunden_id || !neuerAuftrag.Auftragsname) {
       setError('Bitte füllen Sie alle erforderlichen Felder aus');
       return;
     }
+
 
 
     try {
@@ -308,6 +345,7 @@ function Auftraege() {
         Status: neuerAuftrag.Status,
         Angefangen_am: neuerAuftrag.Angefangen_am || new Date().toISOString().split('T')[0]
       };
+
 
 
       await apiCall(API_ENDPOINTS.auftraege, 'POST', payload);
@@ -322,8 +360,10 @@ function Auftraege() {
   };
 
 
+
   const handleDelete = async (auftrag_id) => {
     if (!window.confirm('Diesen Auftrag wirklich löschen?')) return;
+
 
 
     try {
@@ -337,6 +377,7 @@ function Auftraege() {
       setError(`Fehler: ${err.message}`);
     }
   };
+
 
 
   const handleStatusChange = async (auftrag_id, newStatus) => {
@@ -357,6 +398,7 @@ function Auftraege() {
   };
 
 
+
   return (
     <div className="auftraege-fullscreen">
       <AuftraegeHeader
@@ -370,17 +412,20 @@ function Auftraege() {
       />
 
 
+
       <ErrorBanner error={error} onClose={() => setError(null)} />
+
 
 
       {showForm && (
         <AuftraegeFormComponent
           neuerAuftrag={neuerAuftrag}
           setNeuerAuftrag={setNeuerAuftrag}
-          alleAuftraege={alleAuftraege}
+          alleKunden={alleKunden}
           onSubmit={handleSubmit}
         />
       )}
+
 
 
       <AuftraegeGrid
@@ -392,6 +437,7 @@ function Auftraege() {
     </div>
   );
 }
+
 
 
 export default Auftraege;
