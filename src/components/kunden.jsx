@@ -242,7 +242,7 @@ function Kunden() {
           </div>
         ) : (
           <>
-            <div className="timeline-header">
+            <div className="timeline-header-kunden">
               <span>Firma</span>
               <span>Name</span>
               <span>Addresse</span>

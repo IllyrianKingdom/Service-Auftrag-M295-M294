@@ -61,13 +61,20 @@
 
 /* HEADER */
 .disposition-header {
-  padding: var(--space-32);
-  display: flex;
-  justify-content: space-between;
+ display: grid;
+  grid-template-columns: 180px 1fr 160px 140px 48px;
+  gap: var(--space-16);
+  padding: var(--space-20) var(--space-24);
+  background: var(--color-surface);
+  border: 1px solid var(--color-card-border);
+  border-radius: var(--radius-base);
+  margin-bottom: var(--space-8);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
   align-items: center;
-  background: var(--color-background);
-  border-bottom: 1px solid var(--color-border);
-  gap: var(--space-20);
 }
 
 .header-left { display: flex; align-items: center; gap: var(--space-32); }
@@ -243,34 +250,22 @@
   flex-direction: column; 
 }
 
-.timeline-header {
-  display: grid;
-  grid-template-columns: 180px 1fr 160px 140px 48px;
-  gap: var(--space-16);
-  padding: var(--space-20) var(--space-24);
-  background: var(--color-white);
-  border: 1px solid var(--color-card-border);
-  border-radius: var(--radius-base);
-  font-weight: var(--font-weight-semibold);
-  color: black;
-  font-size: var(--font-size-sm);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: var(--space-8);
-}
+
 
 .dispo-zeile {
-  display: grid;
-  grid-template-columns: 180px 1fr 160px 140px 48px;
-  gap: var(--space-16);
-  padding: var(--space-20) var(--space-24);
-  background: var(--color-white);
-  border: 1px solid var(--color-card-border);
-  border-radius: var(--radius-base);
-  margin-bottom: var(--space-8);
-  color: black;
-  align-items: center;
+  display: grid !important;
+  grid-template-columns: 180px 1fr 160px 140px 50px !important; 
+  gap: var(--space-16) !important;
+  padding: var(--space-20) var(--space-24) !important;
+  background: var(--color-white) !important;
+  border: 1px solid var(--color-card-border) !important;
+  border-radius: var(--radius-base) !important;
+  margin-bottom: var(--space-8) !important;
+  color: black !important;
+  align-items: center !important;  /* ← DAS FIXT ES */
+  min-height: 64px !important;
 }
+
 
 .dispo-mitarbeiter { display: flex; align-items: center; gap: var(--space-12); }
 
@@ -362,17 +357,28 @@
 
 /* RESPONSIVE */
 @media (max-width: 768px) {
-  .disposition-header { flex-direction: column; gap: var(--space-16); padding: var(--space-24); }
+  
   .header-controls { flex-direction: column; width: 100%; }
   .suchleiste input { width: 100%; }
   .form-grid { grid-template-columns: 1fr; }
   
 }
-.timeline-header {
-  display: grid;
-  grid-template-columns: 1.5fr 2.5fr 1fr 1fr 1.2fr auto;
-  gap: 50px;
-  padding: var(--space-12) var(--space-16);
-  margin-bottom: var(--space-12);
-  font-size: var(--font-size-sm);
+.timeline-header-dispo {
+  display: grid !important;
+  grid-template-columns: 140px 1fr 10px 140px 450px !important;  
+  padding: var(--space-20) var(--space-24) !important;
+  background: var(--color-surface) !important;
+  border: 1px solid var(--color-card-border) !important;
+  border-radius: var(--radius-base) !important;
+  margin-bottom: var(--space-8) !important;
+  font-size: var(--font-size-sm) !important;
+  font-weight: var(--font-weight-semibold) !important;
+  color: var(--color-text-secondary) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  align-items: center !important;
 }
+.termin-header {
+  padding-left: 300px;
+}
+
