@@ -470,10 +470,6 @@ select.form-control {
   transition: box-shadow var(--duration-normal) var(--ease-standard);
 }
 
-.card:hover {
-  box-shadow: var(--shadow-md);
-}
-
 .card__body {
   padding: var(--space-16);
 }
@@ -669,17 +665,17 @@ select.form-control {
    MITARBEITER LAYOUT – VERTIKAL
    =========================== */
 
-.dispo-zeile {
+.dispo-zeile-mitarbeiter {
   display: grid;
-  grid-template-columns: 200px 150px 150px 200px 200px 50px;
-  gap: var(--space-20);
+  grid-template-columns: 200px 850px 150px 300px 200px 50px !important;
+  gap: var(--space-20) !important;
   padding: var(--space-24) 0;
   border-bottom: 1px solid var(--color-border);
   transition: all var(--duration-normal) var(--ease-standard);
   align-items: center;
 }
 
-.dispo-zeile:hover {
+.dispo-zeile-mitarbeiter:hover {
   background: var(--color-secondary);
   border-radius: var(--radius-lg);
   margin: 0 calc(var(--space-20) * -1);
@@ -829,24 +825,29 @@ select.form-control {
 }
 
 /* TIMELINE HEADER */
-.timeline-header {
-  display: grid;
-  grid-template-columns: 200px 150px 150px 150px 250px 50px;
-  gap: var(--space-20);
-  padding: var(--space-20) 0;
-  border-bottom: 2px solid var(--color-border);
-  margin-bottom: var(--space-24);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  align-items: center;
+.timeline-header-mitarbeiter {
+  display: grid !important;
+  grid-template-columns: 200px 1fr 1px 920px 480px !important;  
+  padding: var(--space-20) var(--space-24) !important;
+  background: var(--color-surface) !important;
+  border: 1px solid var(--color-card-border) !important;
+  border-radius: var(--radius-base) !important;
+  margin-bottom: var(--space-8) !important;
+  font-size: var(--font-size-sm) !important;
+  font-weight: var(--font-weight-semibold) !important;
+  color: var(--color-text-secondary) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  align-items: center !important;
 }
 
-.timeline-header {
-  align-items: center;  /* ← Diese Zeile muss da sein! */
+.email-header {
+  padding-left: 600px;
 }
+.telefon-header {
+  padding-left: 10px;
+}
+
 
 
 
@@ -872,11 +873,7 @@ select.form-control {
     position: relative;
   }
 
-  .dispo-zeile:hover {
-    margin: 0 0 var(--space-16) 0;
-    padding: var(--space-16);
-  }
-
+  
   .dispo-mitarbeiter,
   .dispo-auftrag,
   .dispo-status,

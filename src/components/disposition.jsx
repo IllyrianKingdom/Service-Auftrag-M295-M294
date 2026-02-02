@@ -342,7 +342,7 @@ function Disposition() {
         ) : (
 
           <>
-            <div className="timeline-header" style={{ color: 'black' }}>
+            <div className="timeline-header-dispo" style={{ color: 'black' }}>
               <div className='mitarbeiter-header'>
               <span>Mitarbeiter</span>
               </div>

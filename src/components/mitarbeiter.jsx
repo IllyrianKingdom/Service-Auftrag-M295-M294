@@ -335,19 +335,24 @@ function Mitarbeiter() {
           </div>
         ) : (
           <>
-            <div className="timeline-header">
+            <div className="timeline-header-mitarbeiter">
               <span>Name</span>
               <span>Rolle</span>
-              <span>Status</span>
+              <div className="email-header">
               <span>Email</span>
+              </div>
+              <div className="status-header">
+              <span>Status</span>
+              </div>
+              <div className="telefon-header">
               <span>Telefon</span>
-              <span>Erstellt</span>
+              </div>
               <span></span>
             </div>
 
 
             {mitarbeiter.map(m => (
-              <div key={m.mitarbeiter_id} className="dispo-zeile">
+              <div key={m.mitarbeiter_id} className="dispo-zeile-mitarbeiter">
                 <div className="dispo-mitarbeiter">
                   <div className="avatar">{m.vorname?.charAt(0) || m.name.charAt(0)}</div>
                   <div className="mitarbeiter-info">
