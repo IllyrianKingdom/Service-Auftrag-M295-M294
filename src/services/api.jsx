@@ -1,7 +1,7 @@
 // src/services/api.jsx
 
 // ========== API CONFIG ==========
-const API_BASE = 'http://localhost/TestReact';
+const API_BASE = 'http://localhost/PHPBackend';
 
 export const API_ENDPOINTS = {
   mitarbeiter: `${API_BASE}/mitarbeiter.php`,
