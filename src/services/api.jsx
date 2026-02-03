@@ -11,7 +11,10 @@ export const API_ENDPOINTS = {
   rapportieren: `${API_BASE}/rapportieren.php`,
   verrechnung: `${API_BASE}/verrechnungen.php`,
   login: `${API_BASE}/login.php`,
-  logout: `${API_BASE}/logout.php`
+  logout: `${API_BASE}/logout.php`,
+  
+  // ⭐ NEU: Für Dashboard-Kompatibilität (Alias)
+  berichte: `${API_BASE}/rapportieren.php`
 };
 
 // ========== ERROR MESSAGE MAPPING ==========

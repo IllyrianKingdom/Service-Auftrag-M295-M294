@@ -2,10 +2,7 @@
 // ⚠️ MUST BE FIRST - vor everything!
 session_start();
 
-// Dann config laden
 require_once 'config.php';
-
-// Jetzt erst die Logik
 header('Content-Type: application/json');
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -13,7 +10,6 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     die(json_encode(['success' => false, 'error' => 'Ungültige Anfragemethode']));
 }
 
-// JSON Input parsen
 $input = json_decode(file_get_contents('php://input'), true);
 
 if (!isset($input['email']) || !isset($input['password'])) {
@@ -24,7 +20,6 @@ if (!isset($input['email']) || !isset($input['password'])) {
 $email = trim($input['email']);
 $password = $input['password'];
 
-// Validierung
 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
     http_response_code(400);
     die(json_encode(['success' => false, 'error' => 'Die E-Mail-Adresse ist ungültig']));
@@ -38,28 +33,34 @@ if (strlen($password) === 0) {
 try {
     $conn = getDBConnection();
     
-    // User in DB suchen
-    $stmt = $conn->prepare('SELECT id, email, password_hash, name FROM users WHERE email = :email LIMIT 1');
+    // User MIT ROLLE aus DB holen
+    $stmt = $conn->prepare('
+        SELECT u.id, u.email, u.password_hash, u.name, r.name as role_name 
+        FROM users u 
+        JOIN roles r ON u.role_id = r.id 
+        WHERE u.email = :email 
+        LIMIT 1
+    ');
     $stmt->execute([':email' => $email]);
     $user = $stmt->fetch();
     
     if (!$user || !password_verify($password, $user['password_hash'])) {
-        // Gleiche Meldung für beide Fälle (Security - verhindert User Enumeration)
         http_response_code(401);
         die(json_encode(['success' => false, 'error' => 'E-Mail oder Passwort ist ungültig']));
     }
     
-    // Session Daten speichern
+    // Session Daten speichern INKL. ROLLE
     $_SESSION['user_id'] = $user['id'];
     $_SESSION['email'] = $user['email'];
     $_SESSION['name'] = $user['name'];
+    $_SESSION['user_role'] = $user['role_name']; // ← NEU: Rolle in Session
     
     // httpOnly Cookie setzen
     setcookie('session_id', session_id(), [
         'expires' => time() + (24 * 60 * 60),
         'path' => '/',
         'httponly' => true,
-        'secure' => false, // ⚠️ true nur mit HTTPS!
+        'secure' => false,
         'samesite' => 'Lax'
     ]);
     
@@ -73,7 +74,8 @@ try {
         'user' => [
             'id' => $user['id'],
             'email' => $user['email'],
-            'name' => $user['name']
+            'name' => $user['name'],
+            'role' => $user['role_name']  // ← NEU: Rolle an Frontend
         ],
         'token' => $token
     ]));
@@ -83,8 +85,6 @@ try {
     die(json_encode([
         'success' => false,
         'error' => 'Ein Serverfehler ist aufgetreten. Bitte versuche es später erneut.'
-        // Nur in Entwicklung:
-        // 'debug' => $e->getMessage()
     ]));
 }
 ?>

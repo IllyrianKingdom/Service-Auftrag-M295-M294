@@ -671,12 +671,7 @@ const handlePdfExport = async () => {
               >
                 {isPdfExporting ? '⏳ PDF wird erstellt...' : '📄 PDF Export'}
               </button>
-              <button
-                className="export-btn"
-                onClick={handleExport}
-              >
-                📋 JSON Export
-              </button>
+            
               {!selectedBericht.freigegeben && (
                 <button
                   className="neuer-bericht-btn"
@@ -855,7 +850,7 @@ const handlePdfExport = async () => {
               >
                 <div className="bericht-header-row">
                   <span className={`typ-badge typ-${bericht.typ?.toLowerCase()}`}>
-                    {bericht.typ || 'Auftraege'}
+                   Aufträge
                   </span>
                   {bericht.freigegeben && <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-success)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>✓ Freigegeben</span>}
                   <span className="bericht-anzahl">{bericht.arbeitszeit}h</span>
